@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="UVSim.ArchitectureSim_Interface&lt;WordType, OPCodeWordType&gt;">
+    <Position X="6.25" Y="6.5" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACABAAAEAAAIAAAAAAARAAAAAwAAAAIAAAA=</HashCode>
+      <FileName>ArchitectureSim_Interface.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UVSim.BasicMLSim">
+    <Position X="6.75" Y="10.5" Width="2.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="UVSim.BasicMLSim.BasicMLInstructionSet">
+        <TypeIdentifier>
+          <NewMemberFileName>BasicMLSim.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BasicMLSim.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UVSim.InstructionSet_Interface&lt;WordType, OPCodeWordType&gt;">
+    <Position X="11" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Struct Name="UVSim.InstructionSet_Interface&lt;WordType, OPCodeWordType&gt;.IndexRange" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>InstructionSet_Interface.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Delegate Name="UVSim.InstructionSet_Interface&lt;WordType, OPCodeWordType&gt;.OP" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>InstructionSet_Interface.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAAAACAAIABQAAAAQAAAgAAACAEAAAAA=</HashCode>
+      <FileName>InstructionSet_Interface.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UVSim.ProgramsManagement_Interface&lt;ProgramsCollection, Program, WordType&gt;">
+    <Position X="5.25" Y="4.75" Width="4.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramsManagement_Interface.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UVSim.ProgramsManagementFixedSize_Interface&lt;ProgramsCollection, Program, WordType&gt;">
+    <Position X="2.75" Y="0.5" Width="5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAgAAEAAIAAAECAAAAAAAAgAECAAQAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramsManagementFixedSize_Interface.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UVSim.UVSimProgramManager">
+    <Position X="0.5" Y="4.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAEAAAAAAAAAAAAAAAAgAACAAAAAAAAAAAAAA=</HashCode>
+      <FileName>UVSimProgramManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
