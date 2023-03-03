@@ -1,4 +1,4 @@
-using UV_Sim;
+using UVSim;
 
 namespace UVSimLogic_UnitTests
 {

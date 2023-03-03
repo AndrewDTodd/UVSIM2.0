@@ -18,8 +18,6 @@ AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABL
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using ConsoleUI_Toolkit;
-
 namespace UVSim
 {
     /// <summary>
@@ -45,14 +43,20 @@ namespace UVSim
                     [10] = new OP((Int16[] memory, Int16[] registers, ref byte operand) => 
                     {
                         //This may need to be changed to have all IO happening at the driver, not in the logic of the program
-                        if (!Int16.TryParse(ConsoleUIManager.GetInput(), out memory[operand]))
-                            throw new System.ArgumentException();
+                        
+                        //Depreciated
+                        //Was used in version 1.0
+                        /*if (!Int16.TryParse(ConsoleUIManager.GetInput(), out memory[operand]))
+                            throw new System.ArgumentException();*/
                     }),
                     //Write OP in BasicML
                     [11] = new OP((Int16[] memory, Int16[] registers, ref byte operand) => 
                     {
                         //This may need to be changed to have all IO happening at the driver, not in the logic of the program
-                        ConsoleUIManager.Print(memory[operand].ToString().PadLeft(4,'0'));
+
+                        //Depreciated
+                        //Was used in version 1.0
+                        /*ConsoleUIManager.Print(memory[operand].ToString().PadLeft(4,'0'));*/
                     }),
 
                     //Load OP in BasicML

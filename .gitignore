@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/UVSim_Model/bin/Debug/net7.0
+/UVSim_Model/obj
+/UVSim_Model_UnitTests/bin/Debug/net7.0
+/UVSim_Model_UnitTests/obj
