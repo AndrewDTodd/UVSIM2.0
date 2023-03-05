@@ -7,3 +7,6 @@
 /UVSim_Model/obj
 /UVSim_Model_UnitTests/bin/Debug/net7.0
 /UVSim_Model_UnitTests/obj
+/UVSim_View/bin/Debug/net7.0-windows10.0.19041.0/win10-x64
+/UVSim_View/obj
+/UVSim_ViewModel/obj

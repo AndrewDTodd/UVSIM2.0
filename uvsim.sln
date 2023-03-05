@@ -10,6 +10,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UVSim_Model_UnitTests", "UV
 		{3033244D-D82A-480D-AAB8-C6DC7ECA23FF} = {3033244D-D82A-480D-AAB8-C6DC7ECA23FF}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UVSim_View", "UVSim_View\UVSim_View.csproj", "{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UVSim_ViewModel", "UVSim_ViewModel\UVSim_ViewModel.csproj", "{3900A509-2918-4F9A-9847-2369CD7D1638}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +28,16 @@ Global
 		{26EAE56C-89E0-471D-88BA-5D3DF126AD79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26EAE56C-89E0-471D-88BA-5D3DF126AD79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26EAE56C-89E0-471D-88BA-5D3DF126AD79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{3900A509-2918-4F9A-9847-2369CD7D1638}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3900A509-2918-4F9A-9847-2369CD7D1638}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3900A509-2918-4F9A-9847-2369CD7D1638}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3900A509-2918-4F9A-9847-2369CD7D1638}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
