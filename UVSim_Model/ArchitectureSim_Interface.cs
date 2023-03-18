@@ -112,7 +112,7 @@ namespace UVSim
 
             for(int i = 0; i < registers.Length; i++)
             {
-                output += $"R{i}[{registers[i].ToString()}], ";
+                output += $"R{i}[{registers[i]}], ";
             }
 
             output += "\nMemory:\n";
@@ -126,8 +126,7 @@ namespace UVSim
                 {
                     string? addressContents = memory[(r * 10) + c]?.ToString()?.PadLeft(4, '0');
 
-                    if (addressContents == null)
-                        addressContents = "****";
+                    addressContents ??= "****";
 
                     output += $"[{addressContents}] ";
                 }

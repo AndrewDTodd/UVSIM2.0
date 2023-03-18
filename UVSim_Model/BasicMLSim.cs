@@ -21,10 +21,10 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 namespace UVSim
 {
     /// <summary>
-    /// Implements the <seealso cref="ArchitectureSim_Interface{WordSize}"/> interface (abstract class)
+    /// Implements the <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/> interface (abstract class)
     /// to fullfil the simulator requirnments of the UVSim BasicML Instruction set
     /// </summary>
-    public class BasicMLSim : ArchitectureSim_Interface<Int16, byte>
+    internal class BasicMLSim : ArchitectureSim_Interface<Int16, byte>
     {
         #region INTERNAL_HELPER_CLASSES
         private class BasicMLInstructionSet : InstructionSet_Interface<Int16, byte>

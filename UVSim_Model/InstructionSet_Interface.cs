@@ -28,7 +28,7 @@ using System.Runtime.CompilerServices;
 namespace UVSim
 {
     /// <summary>
-    /// Abstract class that serves as the interface for defining an instructin set to be used by an <seealso cref="ArchitectureSim_Interface{WordType}"/>
+    /// Abstract class that serves as the interface for defining an instructin set to be used by an <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/>
     /// </summary>
     /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
     /// <typeparam name="OPCodeWordType">An unsigned integer type that specifies the word size of the OP codes and operands used in the architecture</typeparam>

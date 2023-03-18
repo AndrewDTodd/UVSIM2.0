@@ -10,9 +10,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UVSim_Model_UnitTests", "UV
 		{3033244D-D82A-480D-AAB8-C6DC7ECA23FF} = {3033244D-D82A-480D-AAB8-C6DC7ECA23FF}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UVSim_View", "UVSim_View\UVSim_View.csproj", "{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UVSim_View", "UVSim_View\UVSim_View.csproj", "{19C8332E-B7E7-4201-BB4D-3D7FCECFEBFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UVSim_ViewModel", "UVSim_ViewModel\UVSim_ViewModel.csproj", "{3900A509-2918-4F9A-9847-2369CD7D1638}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UVSim_ViewModel", "UVSim_ViewModel\UVSim_ViewModel.csproj", "{3900A509-2918-4F9A-9847-2369CD7D1638}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

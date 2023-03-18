@@ -1,14 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
   <Class Name="UVSim.ArchitectureSim_Interface&lt;WordType, OPCodeWordType&gt;">
-    <Position X="6.25" Y="6.5" Width="3.5" />
+    <Position X="0.5" Y="4.75" Width="3.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAACABAAAEAAAIAAAAAAARAAAAAwAAAAIAAAA=</HashCode>
       <FileName>ArchitectureSim_Interface.cs</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="InstructionSet" />
+    </ShowAsAssociation>
   </Class>
   <Class Name="UVSim.BasicMLSim">
-    <Position X="6.75" Y="10.5" Width="2.5" />
+    <Position X="1" Y="8.5" Width="2.5" />
     <Compartments>
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
@@ -46,26 +49,64 @@
       <FileName>InstructionSet_Interface.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="UVSim.ProgramsManagement_Interface&lt;ProgramsCollection, Program, WordType&gt;">
-    <Position X="5.25" Y="4.75" Width="4.75" />
+  <Class Name="UVSim.AssembliesManagement_Interface&lt;AssembliesCollection, Assembly, WordType&gt;">
+    <Position X="18.25" Y="5.25" Width="4.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>ProgramsManagement_Interface.cs</FileName>
+      <FileName>AssembliesManagement_Interface.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="UVSim.ProgramsManagementFixedSize_Interface&lt;ProgramsCollection, Program, WordType&gt;">
-    <Position X="2.75" Y="0.5" Width="5" />
+  <Class Name="UVSim.AssembliesManagementFixedSize_Interface&lt;AssembliesCollection, FixedLengthAssembly, WordType&gt;">
+    <Position X="15.75" Y="0.5" Width="5" />
     <TypeIdentifier>
-      <HashCode>ABAAAgAAEAAIAAAECAAAAAAAAgAECAAQAAAAAAAAAAA=</HashCode>
-      <FileName>ProgramsManagementFixedSize_Interface.cs</FileName>
+      <HashCode>CEAAAAAAAAAAAAAECAAAAAAAAgAEAAgAAAIAAAAAEBA=</HashCode>
+      <FileName>AssembliesManagementFixedSize_Interface.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="UVSim.UVSimProgramManager">
-    <Position X="0.5" Y="4.75" Width="4" />
+  <Class Name="UVSim.BasicMLAssembly">
+    <Position X="6.5" Y="8.25" Width="1.5" />
+    <InheritanceLine Type="UVSim.Assembly_FixedSize&lt;WordCollection, WordType&gt;" FixedToPoint="true">
+      <Path>
+        <Point X="7.125" Y="7.526" />
+        <Point X="7.125" Y="7.875" />
+        <Point X="7.188" Y="7.875" />
+        <Point X="7.188" Y="8.25" />
+      </Path>
+    </InheritanceLine>
     <TypeIdentifier>
-      <HashCode>ABAAAAAAEAAAAAAAAAAAAAAAAgAACAAAAAAAAAAAAAA=</HashCode>
-      <FileName>UVSimProgramManager.cs</FileName>
+      <HashCode>AAAAAAAAAAAAAAAACAAAAAQAAAAAAAAAAABAAAAgAAA=</HashCode>
+      <FileName>UVSimAssemblyManager.cs</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="UVSim.UVSimAssemblyManager">
+    <Position X="13" Y="5" Width="4.5" />
+    <InheritanceLine Type="UVSim.AssembliesManagementFixedSize_Interface&lt;AssembliesCollection, FixedLengthAssembly, WordType&gt;" FixedFromPoint="true">
+      <Path>
+        <Point X="18.25" Y="4.045" />
+        <Point X="18.25" Y="4.875" />
+        <Point X="15.25" Y="4.875" />
+        <Point X="15.25" Y="5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAAAAAAgAAAAgAAAIAAAAAAAA=</HashCode>
+      <FileName>UVSimAssemblyManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UVSim.Assembly_FixedSize&lt;WordCollection, WordType&gt;">
+    <Position X="5.5" Y="4.75" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAAAAAACAACAAQAAAAAAAAAAAAAAAAgAIA=</HashCode>
+      <FileName>AssembliesManagementFixedSize_Interface.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="UVSim.IAssemblyFixedLength&lt;WordType&gt;">
+    <Position X="6.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAACAAQAAAAAAAAAAAAAAAAgAIA=</HashCode>
+      <FileName>AssembliesManagementFixedSize_Interface.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>
