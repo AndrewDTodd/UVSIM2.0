@@ -27,7 +27,7 @@ namespace UVSim
     /// <summary>
     /// Implements the Assembly interface define in <seealso cref="Assembly_FixedSize{WordCollection, WordType}"/> defining the assembly standard for the UVSim application
     /// </summary>
-    internal class BasicMLAssembly : Assembly_FixedSize<Int16[], Int16>
+    public class BasicMLAssembly : Assembly_FixedSize<Int16[], Int16>
     {
         #region FIELDS
         private readonly Int16[] _words;
@@ -57,7 +57,7 @@ namespace UVSim
     /// Implements the <seealso cref="AssembliesManagementFixedSize_Interface{AssembliesCollection, FixedLengthAssembly, WordType}"/> interface (abstract generic class)
     /// to fullfil the simulator requirnments of the UVSim BasicML Instruction set
     /// </summary>
-    internal class UVSimAssemblyManager : AssembliesManagementFixedSize_Interface<List<BasicMLAssembly>, BasicMLAssembly, Int16>
+    public class UVSimAssemblyManager : AssembliesManagementFixedSize_Interface<List<BasicMLAssembly>, BasicMLAssembly, Int16>
     {
         public UVSimAssemblyManager() : base(100) { }
 

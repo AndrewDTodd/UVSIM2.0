@@ -24,7 +24,7 @@ namespace UVSim
     /// Implements the <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/> interface (abstract class)
     /// to fullfil the simulator requirnments of the UVSim BasicML Instruction set
     /// </summary>
-    internal class BasicMLSim : ArchitectureSim_Interface<Int16, byte>
+    public class BasicMLSim : ArchitectureSim_Interface<Int16, byte>
     {
         #region INTERNAL_HELPER_CLASSES
         private class BasicMLInstructionSet : InstructionSet_Interface<Int16, byte>

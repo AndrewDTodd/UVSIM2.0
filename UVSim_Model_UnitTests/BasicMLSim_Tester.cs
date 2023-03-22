@@ -50,9 +50,9 @@ namespace UVSimLogic_UnitTests
         public void RunProgram_BadInput()
         {
             BasicMLSim _testCaseObject = new();
-            UVSimProgramManager _manager = new();
+            UVSimAssemblyManager _manager = new();
 
-            _testCaseObject.LoadProgram(_manager.ParseProgram(new string[] {"9900"}));
+            _testCaseObject.LoadProgram(_manager.ParseProgram(new string[] {"9900"}).Words);
 
             Assert.ThrowsException<System.ArgumentException>(() => _testCaseObject.RunProgram());
         }
@@ -61,7 +61,7 @@ namespace UVSimLogic_UnitTests
         public void RunProgram_GoodInput()
         {
             BasicMLSim _testCaseObject = new();
-            UVSimProgramManager _manager = new();
+            UVSimAssemblyManager _manager = new();
 
             _testCaseObject.LoadProgram(_manager.ParseProgram(new string[] 
             {
@@ -69,7 +69,7 @@ namespace UVSimLogic_UnitTests
                 "2121", 
                 "4300", 
                 "#+5150"
-            }));
+            }).Words);
             _testCaseObject.RunProgram();
 
             Assert.AreEqual(5150, _testCaseObject.Memory[21]);

@@ -9,7 +9,7 @@ namespace UVSim
     /// <summary>
     /// Implements the <seealso cref="UVSim.Program{LinesContainer}"/> interface to facilatate BasicML syntax assembly programs
     /// </summary>
-    internal class BasicMLProgram : Program<List<UVSim.LineData>>
+    public class BasicMLProgram : Program<List<UVSim.LineData>>
     {
         #region CONSTRUCTORS
         public BasicMLProgram(string programName) : base(programName, "bml")
@@ -24,7 +24,7 @@ namespace UVSim
     /// <summary>
     /// Implements the <seealso cref="ProgramsManagement_Interface{ProgramsCollection, Program}"/> interface
     /// </summary>
-    internal class UVSimProgramsManager : ProgramsManagement_Interface<Dictionary<string, BasicMLProgram>, BasicMLProgram>
+    public class UVSimProgramsManager : ProgramsManagement_Interface<Dictionary<string, BasicMLProgram>, BasicMLProgram>
     {
     }
 }
