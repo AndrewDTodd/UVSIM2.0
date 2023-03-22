@@ -24,6 +24,19 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace UVSim
 {
+    /// <summary>
+    /// Simple container for file info needed for GUI display as well as serialization
+    /// </summary>
+    public struct SerializationInfo
+    {
+        public string _fileName;
+        public string _extension;
+        public FileInfo? _fileInfo;
+    }
+
+    /// <summary>
+    /// Contains information the application tracks on a per line basis in a text sytax assemly language program
+    /// </summary>
     public class LineData
     {
         #region FIELDS
@@ -44,13 +57,17 @@ namespace UVSim
         #endregion
     }
 
+    /// <summary>
+    /// Interface that defines the unified functionality expected of every human readable syntactic programing language used in the application
+    /// </summary>
     public interface IProgram
     {
         #region PROPERTIES
         public bool NeedsSave { get; }
-        public IList<UVSim.LineData> Lines { get; }
-
-        public string Extension { get; set; }
+        public abstract IList<UVSim.LineData> Lines { get; }
+        public string FileName { get; set; }
+        public string Extension { get; }
+        public FileInfo? FileInfo { get; set; }
         #endregion
 
         #region OPERATORS
@@ -76,6 +93,10 @@ namespace UVSim
         #endregion
     }
 
+    /// <summary>
+    /// Implements the <seealso cref="IProgram"/> interface and defines an abstract class that concrete types will derive from to define program types digestable by the application
+    /// </summary>
+    /// <typeparam name="LinesContainer"></typeparam>
     public abstract class Program<LinesContainer> : IProgram
         where LinesContainer : IList<UVSim.LineData>, new()
     {
@@ -84,19 +105,15 @@ namespace UVSim
 
         protected LinesContainer _lines = new();
 
-        protected string _fileName;
-
-        protected string _extension;
-
-        protected FileInfo? _fileInfo;
+        protected SerializationInfo _serializationInfo;
         #endregion
 
         #region PROPERTIES
-        public bool NeedsSave { get => _needsSave; }
-        public IList<UVSim.LineData> Lines { get => _lines; }
-        public string FileName { get => _fileName; set => _fileName = value; }
-        public FileInfo? FileInfo { get => _fileInfo; set => _fileInfo = value; }
-        public string Extension { get => _extension; set => _extension = value; }
+        public virtual bool NeedsSave { get => _needsSave; }
+        public abstract IList<UVSim.LineData> Lines { get; }
+        public virtual string FileName { get => _serializationInfo._fileName; set => _serializationInfo._fileName = value; }
+        public virtual FileInfo? FileInfo { get => _serializationInfo._fileInfo; set => _serializationInfo._fileInfo = value; }
+        public virtual string Extension { get => _serializationInfo._extension; }
         #endregion
 
         #region OPERATORS
@@ -108,11 +125,11 @@ namespace UVSim
 
         #region CONSTRUCTORS
         public Program(string fileName, string ext) =>
-            (_fileName, _extension) = (fileName, ext);
+            (_serializationInfo._fileName, _serializationInfo._extension) = (fileName, ext);
         #endregion
 
         #region PUBLIC_METHODS
-        public bool TryAddLine(string text)
+        public virtual bool TryAddLine(string text)
         {
             if (Activator.CreateInstance(typeof(LineData), new { text }) is LineData line)
             {
@@ -123,19 +140,19 @@ namespace UVSim
             return false;
         }
 
-        public void RemoveLine(int index)
+        public virtual void RemoveLine(int index)
         {
             _lines.RemoveAt(index);
             _needsSave = true;
         }
 
-        public void SetLine(int index, string newText)
+        public virtual void SetLine(int index, string newText)
         {
             _lines[index].Text = newText;
             _needsSave = true;
         }
 
-        public bool TrySetContent(string[] newLines)
+        public virtual bool TrySetContent(string[] newLines)
         {
             LinesContainer newCont = new();
 
@@ -156,12 +173,12 @@ namespace UVSim
         #endregion
 
         #region SERIEALIZATION
-        public async Task<bool> SerializeProgram()
+        public virtual async Task<bool> SerializeProgram()
         {
-            if (_fileInfo == null || string.IsNullOrEmpty(_fileInfo.FullName))
+            if (_serializationInfo._fileInfo == null || string.IsNullOrEmpty(_serializationInfo._fileInfo.FullName))
                 throw new InvalidOperationException("No file path specified for the program trying to save");
 
-            using StreamWriter writer = new(new FileStream(_fileInfo.FullName, FileMode.Create));
+            using StreamWriter writer = new(new FileStream(_serializationInfo._fileInfo.FullName, FileMode.Create));
 
             writer.AutoFlush = false;
 
@@ -177,11 +194,11 @@ namespace UVSim
             return true;
         }
 
-        public async Task<bool> DeserializeProgram(FileInfo info)
+        public virtual async Task<bool> DeserializeProgram(FileInfo info)
         {
-            _fileInfo ??= info;
+            _serializationInfo._fileInfo ??= info;
 
-            using StreamReader reader = new(new FileStream(_fileInfo.FullName, FileMode.Open));
+            using StreamReader reader = new(new FileStream(_serializationInfo._fileInfo.FullName, FileMode.Open));
 
             Task<string> result = reader.ReadToEndAsync();
 
@@ -202,6 +219,13 @@ namespace UVSim
         #endregion
     }
 
+    /// <summary>
+    /// This abstract class serves as the interface used to create any concrete class whos purpose
+    /// is to manage the creation, storage, serialization and valadation of any generic set of instructions known as a program for
+    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/>
+    /// </summary>
+    /// <typeparam name="ProgramsCollection">A collection that will store all the currently loaded programs. Type must implement the IDictionary interface and have a public parameterless constructor</typeparam>
+    /// <typeparam name="Program">Type that implements the <seealso cref="IProgram"/> interface. Recommended that type serives from <seealso cref="Program"/> for ease of use</typeparam>
     public abstract class ProgramsManagement_Interface<ProgramsCollection, Program>
         where ProgramsCollection : IDictionary<string, Program>, new()
         where Program : IProgram
@@ -211,7 +235,7 @@ namespace UVSim
         #endregion
 
         #region PROPERTIES
-        public ProgramsCollection Programs { get => _programs; }
+        public virtual ProgramsCollection Programs { get => _programs; }
         #endregion
 
         #region OPERATORS
@@ -227,7 +251,7 @@ namespace UVSim
         #endregion
 
         #region PUBLIC_METHODS
-        public bool TryCreateNewProgram(string programName)
+        public virtual bool TryCreateNewProgram(string programName)
         {
             if (Activator.CreateInstance(typeof(Program), new { programName }) is Program newProgram)
             {
