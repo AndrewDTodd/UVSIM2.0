@@ -18,4 +18,13 @@
 		<RootNamespace>UVSim.ViewModel</RootNamespace>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="CommunityToolkit.Maui" Version="5.0.0" />
+	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="ViewModels\" />
+	</ItemGroup>
+
 </Project>
