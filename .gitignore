@@ -11,3 +11,6 @@
 /UVSim_View/obj
 /UVSim_ViewModel/obj
 /UVSim_View/UVSim_View.csproj.user
+/UVSim_View/bin/Debug/net7.0-maccatalyst/maccatalyst-x64
+/UVSim_ViewModel/bin/Debug
+/UVSim_View/bin/Debug/net7.0
