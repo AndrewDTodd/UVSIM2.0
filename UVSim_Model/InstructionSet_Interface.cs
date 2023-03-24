@@ -1,5 +1,8 @@
 ﻿/*
 InstructionSet_Interface
+<summary>
+Abstract class that serves as the interface for defining an instructin set to be used by an <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/>
+</summary>
 
 Copyright 2023 Andrew Todd
 
@@ -28,6 +31,48 @@ using System.Runtime.CompilerServices;
 namespace UVSim
 {
     /// <summary>
+    /// Used to represent the range of registers that are general purpose in the subsequent property
+    /// </summary>
+    public struct IndexRange
+    {
+        public int startIndex;
+        public int endIndex;
+    }
+
+    /// <summary>
+    /// Used to store informations about which registers in a system are responsible for what role
+    /// </summary>
+    public readonly struct Registers
+    {
+        /// <summary>
+        /// Index of register that is the program counter register
+        /// </summary>
+        public readonly int _programCounterIndex;
+
+        /// <summary>
+        /// Index of register that is the program counter register
+        /// </summary>
+        public readonly IndexRange _genPurposeRegisters;
+
+        /// <summary>
+        /// index of the register that is used to store the programs state
+        /// </summary>
+        public readonly int _cpsrIndex;
+
+        /// <summary>
+        /// index of register that is used to return control to stored address after subroutine return
+        /// </summary>
+        public readonly int? _linkRegisterIndex;
+
+        /// <summary>
+        /// register that stores the stack pointer
+        /// </summary>
+        public readonly int? _stackPointerIndex;
+
+        public Registers(int pc, IndexRange gpr, int cpsr, int? lr = null, int? sp = null) =>
+            (_programCounterIndex, _genPurposeRegisters, _cpsrIndex, _linkRegisterIndex, _stackPointerIndex) = (pc, gpr, cpsr, lr, sp);
+    }
+    /// <summary>
     /// Abstract class that serves as the interface for defining an instructin set to be used by an <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/>
     /// </summary>
     /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
@@ -40,7 +85,9 @@ namespace UVSim
         /// <remarks>
         /// Stores a set of key vallues that are OP codes(Keys) and delegates(values) to impementations that handle those operations
         /// </remarks>
-        protected readonly Dictionary<WordType, OP>? instructionSet;
+        protected readonly Dictionary<WordType, OP>? _instructionSet;
+
+        protected readonly Registers _registers;
         #endregion
 
         #region PROPERTIES
@@ -48,39 +95,32 @@ namespace UVSim
         /// Program counter keeps track of the address of the next instruction to be executed.
         /// ***Required!!!***
         /// </remarks>
-        public byte ProgramCounterIndex { get; protected init; }
-        /// <summary>
-        /// Used to represent the range of registers that are general purpose in the subsequent property
-        /// </summary>
-        public struct IndexRange
-        {
-            public byte startIndex;
-            public byte endIndex;
-        }
+        public int ProgramCounterIndex { get => _registers._programCounterIndex; }
+        
         /// <remarks>
         /// Contains the indexes of all general purpose registers supported by the architecture
         /// ***Required!!!***
         /// <seealso cref="IndexRange"/>
         /// </remarks>
-        public IndexRange GeneralPurposeRegistersIndexes { get; protected init; }
+        public IndexRange GeneralPurposeRegistersIndexes { get => _registers._genPurposeRegisters; }
         /// <summary>
         /// CPRS: Current program status register.
         /// Used to keep track of the state of the program
         /// </summary>
-        public byte CPSRIndex { get; protected init; }
+        public int CPSRIndex { get => _registers._cpsrIndex; }
         /// <summary>
         /// Used for control flow back to the caller after exiting a subroutine in supported architectures
         /// </summary>
-        public byte? LinkRegisterIndex { get; protected init; }
+        public int? LinkRegisterIndex { get => _registers._linkRegisterIndex; }
         /// <summary>
         /// Keeps track of the current next free address on stack memory in supported architectures
         /// </summary>
-        public byte? StackPointerIndex { get; protected init; }
+        public int? StackPointerIndex { get => _registers._stackPointerIndex; }
 
         /// <remarks>
         /// Used to initialize the <seealso cref="instructionSet"/> field
         /// </remarks>
-        protected Dictionary<WordType, OP> InstructionSet { init => instructionSet = value; }
+        protected Dictionary<WordType, OP> InstructionSet { init => _instructionSet = value; }
 
         /// <summary>
         /// Can index into the object with the [] operator to see if the instruction set contains a certain OP code
@@ -93,10 +133,10 @@ namespace UVSim
         { 
             get
             {
-                if (instructionSet == null)
+                if (_instructionSet == null)
                     throw new System.InvalidOperationException("Instruction set has not been initialized. Can't query its Dictionary.");
 
-                if (!instructionSet.TryGetValue(key, out OP? value))
+                if (!_instructionSet.TryGetValue(key, out OP? value))
                     throw new System.ArgumentException($"The Instruction Set doesn't contain the entered OP code {key}");
 
                 return value;
@@ -114,10 +154,10 @@ namespace UVSim
         /// <exception cref="System.ArgumentException"></exception>
         public virtual OP QueryOP(WordType opCode)
         {
-            if (instructionSet == null)
+            if (_instructionSet == null)
                 throw new System.InvalidOperationException("Instruction set has not been initialized. Can't query its Dictionary.");
 
-            if (!instructionSet.TryGetValue(opCode, out OP? value))
+            if (!_instructionSet.TryGetValue(opCode, out OP? value))
                 throw new System.ArgumentException("The Instruction Set doesn't contain the entered OP code");
 
             return value;
@@ -125,16 +165,16 @@ namespace UVSim
         #endregion
 
         #region CONSTRUCTORS
-        protected InstructionSet_Interface(byte PCIndex, IndexRange GeneralPurposeRegisters, byte CPSRIndex,
-            byte? LinkRegisterIndex = null, byte? StackPointerIndex = null) =>
-            (this.ProgramCounterIndex, this.GeneralPurposeRegistersIndexes, this.CPSRIndex, this.LinkRegisterIndex, this.StackPointerIndex) = 
-            (PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex);
+        protected InstructionSet_Interface(int PCIndex, IndexRange GeneralPurposeRegisters, int CPSRIndex,
+            int? LinkRegisterIndex = null, int? StackPointerIndex = null) =>
+            (this._registers) = 
+            (new Registers(PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex));
 
         protected InstructionSet_Interface(Dictionary<WordType, OP> instructionSet,
-            byte PCIndex, IndexRange GeneralPurposeRegisters, byte CPSRIndex,
-            byte? LinkRegisterIndex = null, byte? StackPointerIndex = null) =>
-            (this.InstructionSet, this.ProgramCounterIndex, this.GeneralPurposeRegistersIndexes, this.CPSRIndex, this.LinkRegisterIndex, this.StackPointerIndex) =
-            (instructionSet, PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex);
+            int PCIndex, IndexRange GeneralPurposeRegisters, int CPSRIndex,
+            int? LinkRegisterIndex = null, int? StackPointerIndex = null) =>
+            (this._instructionSet, this._registers) =
+            (instructionSet, new Registers(PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex));
         #endregion
 
         #region OPS

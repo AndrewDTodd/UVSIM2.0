@@ -42,12 +42,14 @@ namespace UVSim
 
         //0 for false, 1 for true
         protected  int _programLoaded = 0;
+
+        protected readonly InstructionSet_Interface<WordType, OPCodeWordType> _instructionSet;
         #endregion
 
         #region PROPERTIES
-        protected InstructionSet_Interface<WordType, OPCodeWordType> InstructionSet { get; init; }
         public WordType[] Registers { get => registers; }
         public WordType[] Memory { get => memory; }
+        public InstructionSet_Interface<WordType, OPCodeWordType> InstructionSet { get => _instructionSet; }
         #endregion
 
         #region CONSTRUCTORS
@@ -61,7 +63,7 @@ namespace UVSim
             registers = new WordType[Convert.ToUInt64(numOfRegisters)];
             memory = new WordType[Convert.ToInt64(memAddresses)];
 
-            InstructionSet = instructionSet;
+            _instructionSet = instructionSet;
         }
         #endregion
 

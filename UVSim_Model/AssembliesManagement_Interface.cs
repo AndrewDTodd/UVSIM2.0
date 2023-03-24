@@ -82,12 +82,14 @@ namespace UVSim
         protected bool _upToDate = true;
 
         protected SerializationInfo _serializationInfo;
+
+        protected WordCollection _words = new();
         #endregion
 
         #region PROPERTIES
         public bool UpToDate { get => _upToDate; }
 
-        public abstract IList<WordType>? Words { get; }
+        public abstract IList<WordType> Words { get; }
 
         public abstract int Count { get; }
 

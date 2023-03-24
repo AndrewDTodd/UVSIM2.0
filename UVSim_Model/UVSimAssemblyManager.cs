@@ -69,9 +69,6 @@ namespace UVSim
             if (programText.Length > AssemblySize)
                 throw new System.ArgumentException($"Program contains more words than system supports!\nSystem supports up to {AssemblySize} words per program, program contains {programText.Length}");
 
-            if (AssemblySize == null)
-                throw new System.InvalidOperationException("This method needs to be overridden to for an implementation than doesn't require a defined program size. ProgramSize if null!");
-
             loadedAssemblies.Add(new());
 
             BasicMLAssembly assembly = loadedAssemblies.Last();
@@ -109,9 +106,6 @@ namespace UVSim
             if (programText.Length > AssemblySize)
                 throw new System.ArgumentException($"Program contains more words than system supports!\nSystem supports up to {AssemblySize} words per program, program contains {programText.Length}");
 
-            if (AssemblySize == null)
-                throw new System.InvalidOperationException("This method needs to be overridden to for an implementation than doesn't require a defined program size. ProgramSize if null!");
-
             BasicMLAssembly assembly = new();
 
             for (int i = 0; i < programText.Length; i++)
@@ -147,10 +141,6 @@ namespace UVSim
             if (loadedAssemblies.Count == 0)
                 throw new System.InvalidOperationException("Program storage object is empty");
 
-            if (AssemblySize == null)
-                throw new System.InvalidOperationException("This method needs to be overridden to for an implementation than doesn't require a defined program size. ProgramSize if null!");
-
-
             for (int i = 0; i < indexes.Length; i++)
             {
                 List<byte> buffer = new(capacity: (int)loadedAssemblies[i].Words.Length * BitConverter.GetBytes(loadedAssemblies[i][0]).Length);
@@ -182,9 +172,6 @@ namespace UVSim
         {
             foreach (string filePath in filePaths)
             {
-                if (AssemblySize == null)
-                    throw new System.InvalidOperationException("This method needs to be overridden to for an implementation than doesn't require a defined program size. ProgramSize if null!");
-
                 if (string.IsNullOrEmpty(filePath))
                     throw new System.ArgumentException($"File path cannot be empty!\nEntered file path {filePath}");
 

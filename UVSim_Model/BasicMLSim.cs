@@ -34,7 +34,7 @@ namespace UVSim
             #endregion
 
             #region CONSTRUCTORS
-            public BasicMLInstructionSet() : base(1, new InstructionSet_Interface<Int16, byte>.IndexRange { startIndex = 0, endIndex = 0}, 2)
+            public BasicMLInstructionSet() : base(1, new IndexRange { startIndex = 0, endIndex = 0}, 2)
             {
                 //Defines the OP codes and associated operations for the Basic ML Architecture used by programs on this system
                 InstructionSet = new Dictionary<Int16, OP>()

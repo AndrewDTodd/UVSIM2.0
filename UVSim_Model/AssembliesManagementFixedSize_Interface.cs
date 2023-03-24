@@ -47,6 +47,8 @@ namespace UVSim
         protected bool _upToDate = true;
 
         protected SerializationInfo _serializationInfo;
+
+        //protected WordCollection? _words;
         #endregion
 
         #region PROPERTIES
@@ -95,7 +97,7 @@ namespace UVSim
         /// <summary>
         /// Returns the max size of an assembly in bytes, null if the architecture provides no limitation
         /// </summary>
-        protected int? AssemblySize {get; init;}
+        protected int AssemblySize {get; init;}
         #endregion
 
         #region OPERATORS
