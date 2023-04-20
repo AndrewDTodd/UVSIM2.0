@@ -18,29 +18,32 @@ AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABL
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System.Collections.ObjectModel;
+
 namespace UVSim
 {
     /// <summary>
-    /// Implements the <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/> interface (abstract class)
+    /// Implements the <seealso cref="ArchitectureSim_Interface{WordType}"/> interface (abstract class)
     /// to fullfil the simulator requirnments of the UVSim BasicML Instruction set
     /// </summary>
-    public class BasicMLSim : ArchitectureSim_Interface<Int16, byte>
+    /// <inheritdoc/>
+    public class BasicMLSim : ArchitectureSim_Interface<Int16>
     {
         #region INTERNAL_HELPER_CLASSES
-        private class BasicMLInstructionSet : InstructionSet_Interface<Int16, byte>
+        private class BasicMLInstructionSet : InstructionSet_Interface<Int16>
         {
             #region ADDITIONAL_OPS
             
             #endregion
 
             #region CONSTRUCTORS
-            public BasicMLInstructionSet() : base(1, new IndexRange { startIndex = 0, endIndex = 0}, 2)
+            public BasicMLInstructionSet() : base(1, new IndexRange(startIndex:0, endIndex:0), 2)
             {
                 //Defines the OP codes and associated operations for the Basic ML Architecture used by programs on this system
-                InstructionSet = new Dictionary<Int16, OP>()
+                InstructionSet = new Dictionary<int, OP>()
                 {
                     //Read OP in BasicML
-                    [10] = new OP((Int16[] memory, Int16[] registers, ref byte operand) => 
+                    [10] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) => 
                     {
                         //This may need to be changed to have all IO happening at the driver, not in the logic of the program
                         
@@ -50,7 +53,7 @@ namespace UVSim
                             throw new System.ArgumentException();*/
                     }),
                     //Write OP in BasicML
-                    [11] = new OP((Int16[] memory, Int16[] registers, ref byte operand) => 
+                    [11] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) => 
                     {
                         //This may need to be changed to have all IO happening at the driver, not in the logic of the program
 
@@ -60,56 +63,56 @@ namespace UVSim
                     }),
 
                     //Load OP in BasicML
-                    [20] = new OP((Int16[] memory, Int16[] registers, ref byte operand) => 
+                    [20] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) => 
                     {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = memory[operand];
+                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = memory[(int)operand];
                     }),
                     //Store OP in BasicML
-                    [21] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [21] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        memory[operand] = registers[this.GeneralPurposeRegistersIndexes.startIndex];
+                        memory[(int)operand] = registers[this.GeneralPurposeRegistersIndexes.startIndex];
                     }),
 
                     //ADD OP in BasicML
-                    [30] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [30] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] + (int)memory[operand]);
+                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] + (int)memory[(int)operand]);
                     }),
                     //SUB OP in BasicML
-                    [31] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [31] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] - (int)memory[operand]);
+                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] - (int)memory[(int)operand]);
                     }),
                     //DIV OP in BasicML
-                    [32] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [32] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] / (int)memory[operand]);
+                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] / (int)memory[(int)operand]);
                     }),
                     //MUL OP in BasicML
-                    [33] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [33] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] * (int)memory[operand]);
+                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] * (int)memory[(int)operand]);
                     }),
 
                     //Branch OP in BasicML
-                    [40] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [40] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
                         registers[this.ProgramCounterIndex] = (Int16)((int)operand - 1);
                     }),
                     //Branch if Neg OP in BasicML
-                    [41] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [41] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        if (registers[this.GeneralPurposeRegistersIndexes.startIndex] < 0)
+                        if ((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] < 0)
                             registers[this.ProgramCounterIndex] = (Int16)((int)operand - 1);
                     }),
                     //Branch if Zero OP in BasicML
-                    [42] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [42] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
-                        if (registers[this.GeneralPurposeRegistersIndexes.startIndex] == 0)
+                        if ((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] == 0)
                             registers[this.ProgramCounterIndex] = (Int16)((int)operand - 1);
                     }),
                     //HLT (hault) OP in BasicML
-                    [43] = new OP((Int16[] memory, Int16[] registers, ref byte operand) =>
+                    [43] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
                     {
                         registers[this.CPSRIndex] = 43;
                     })
@@ -134,7 +137,11 @@ namespace UVSim
         #endregion
 
         #region PUBLIC_METHODS
-        public override void LoadProgram(IList<Int16>? program)
+        /// <summary>
+        /// Allows a caller to send a set of instructions (program) to the simulator to be loaded into memory.
+        /// </summary>
+        /// <param name="program">List of instructions and data with 16 bit words</param>
+        public override void LoadProgram(IList<Int16> program)
         {
             //call abstract base class' virtual method that implements basic functionality required by all ArchitectureSims
             base.LoadProgram(program);
@@ -144,6 +151,10 @@ namespace UVSim
             registers[2] = 0;
         }
 
+        /// <summary>
+        /// If called after a program is sucessfully loaded into simulator memory, will run the loaded program
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException">Thrown if the method is called with no program loaded</exception>
         public override void RunProgram()
         {
             if (0 == Interlocked.CompareExchange(ref _programLoaded, 0, 0))
@@ -152,11 +163,11 @@ namespace UVSim
             do
             {
                 byte opCode = (byte)(memory[registers[this.InstructionSet.ProgramCounterIndex]] >> 8);
-                byte operand = (byte)(memory[registers[this.InstructionSet.ProgramCounterIndex]] & 0xFF);
+                Int16 operand = (byte)(memory[registers[this.InstructionSet.ProgramCounterIndex]] & 0xFF);
 
                 try
                 {
-                    InstructionSet_Interface<Int16, byte>.OP instruction = InstructionSet[opCode];
+                    InstructionSet_Interface<Int16>.OP instruction = _instructionSet[opCode];
 
                     instruction.Invoke(memory, registers, ref operand);
                 }

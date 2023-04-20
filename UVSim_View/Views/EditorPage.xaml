@@ -1,0 +1,432 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             
+             xmlns:views="clr-namespace:UVSim_View"
+             x:Class="UVSim_View.EditorPage"
+             
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="Save"/>
+            <MenuFlyoutItem Text="Save As"/>
+            <MenuFlyoutItem Text="Save All"/>
+            <MenuFlyoutSeparator/>
+            <MenuFlyoutItem Text="Exit"/>
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+    <ContentPage.Resources>
+        <ControlTemplate x:Key="DockOptionsControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource DockOptionsButton}">
+
+                    <Button.Triggers>
+                        <DataTrigger
+                            TargetType="Button"
+                            Binding="{Binding Source={RelativeSource TemplatedParent}, Path=IsChecked}"
+                            Value="True">
+
+                            <Setter
+                                Property="BorderColor"
+                                Value="AliceBlue"/>
+                        </DataTrigger>
+                    </Button.Triggers>
+
+                    <Button.GestureRecognizers>
+                        <TapGestureRecognizer
+                            NumberOfTapsRequired="1"
+                            Tapped="DockOptionsButton_Tapped"/>
+                    </Button.GestureRecognizers>
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="EditModeControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource MenueButton}"
+                    
+                    BorderColor="AliceBlue">
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="SimModeControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource MenueButton}"
+                    
+                    Clicked="SimModeButton_Clicked">
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+    </ContentPage.Resources>
+
+    <Grid
+        BackgroundColor="{StaticResource Gray600}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <HorizontalStackLayout
+            Grid.Row="0"
+            
+            Padding="0"
+            Margin="0,3,0,3"
+            
+            MinimumHeightRequest="20"
+            
+            HorizontalOptions="Center">
+
+            <Frame
+                Padding="5,2,5,2"
+            
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray900}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                HorizontalOptions="Center">
+
+                <HorizontalStackLayout
+                HorizontalOptions="Center"
+                Padding="0"
+                Margin="0">
+
+                    <Button
+                        Text="Build"
+                        Style="{StaticResource MenueButton}"/>
+
+                    <!--<Button
+                        Text="Resource Configuration"/>-->
+
+                    <Button
+                        Text="Run"
+                        Style="{StaticResource MenueButton}"/>
+                </HorizontalStackLayout>
+            </Frame>
+
+            <Frame
+                Padding="5,2,5,2"
+            
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray900}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                HorizontalOptions="Center">
+
+                <HorizontalStackLayout
+                HorizontalOptions="Center"
+                Padding="0"
+                Margin="0">
+
+                    <!--<RadioButton
+                        x:Name="editModeButton"
+                        
+                        IsChecked="True"
+                        
+                        Content="Edit Mode"
+                        ControlTemplate="{StaticResource EditModeControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>-->
+                    <Button
+                        Text="Edit Mode"
+                        Style="{StaticResource MenueButton}"
+                    
+                        BorderColor="AliceBlue">
+                    </Button>
+
+                    <!--<RadioButton
+                        x:Name="simModeButton"
+                        
+                        IsChecked="False"
+                        
+                        Content="Simulator Mode"
+                        ControlTemplate="{StaticResource SimModeControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>-->
+                    <Button
+                        Text="Simulator Mode"
+                        Style="{StaticResource MenueButton}"
+                    
+                        Clicked="SimModeButton_Clicked">
+                    </Button>
+                </HorizontalStackLayout>
+            </Frame>
+        </HorizontalStackLayout>
+
+        <toolkit:DockLayout
+            Grid.Row="1"
+            
+            BackgroundColor="{StaticResource Gray600}"
+            
+            Margin="0"
+            Padding="0"
+            
+            MinimumHeightRequest="400"
+            MinimumWidthRequest="600">
+
+            <Frame
+                toolkit:DockLayout.DockPosition="Left"
+                WidthRequest="330"
+                MaximumWidthRequest="350"
+                
+                Margin="5,0,0,5"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+
+                <VerticalStackLayout>
+                    <Label
+                        Text="Programs Collection Explorer"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <SearchBar
+                        Placeholder="Search Programs"
+                        PlaceholderColor="AntiqueWhite"
+                        CancelButtonColor="{StaticResource Gray550}"
+                        
+                        BackgroundColor="{StaticResource Gray500}"
+                        
+                        MinimumHeightRequest="30"/>
+
+                    <CollectionView>
+
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="30"
+                MaximumHeightRequest="30"
+                
+                HorizontalOptions="Start"
+                
+                Margin="5,0,5,5"
+                Padding="0"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+
+                <HorizontalStackLayout
+                    
+                    Padding="0"
+                    Margin="0">
+
+                    <RadioButton
+                        x:Name="errorListButton"
+                        
+                        IsChecked="True"
+                        
+                        Content="Error List"
+                        ControlTemplate="{StaticResource DockOptionsControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>
+
+                    <RadioButton
+                        x:Name="outputButton"
+                        
+                        Content="Output"
+                        ControlTemplate="{StaticResource DockOptionsControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>
+
+                    <RadioButton
+                        x:Name="consoleButton"
+                        
+                        Content="Console"
+                        ControlTemplate="{StaticResource DockOptionsControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>
+                </HorizontalStackLayout>
+            </Frame>
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="220"
+                MaximumHeightRequest="230"
+                
+                Margin="5,5,5,0"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                IsVisible="{Binding Source={x:Reference Name=errorListButton}, Path=IsChecked}">
+
+                <VerticalStackLayout>
+
+                    <Label
+                        Text="Error List"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <CollectionView>
+                        
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="220"
+                MaximumHeightRequest="230"
+                
+                Margin="5,5,5,0"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                IsVisible="{Binding Source={x:Reference Name=outputButton}, Path=IsChecked}">
+
+                <VerticalStackLayout>
+
+                    <Label
+                        Text="Output"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <CollectionView>
+
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="220"
+                MaximumHeightRequest="230"
+                
+                Margin="5,5,5,0"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                IsVisible="{Binding Source={x:Reference Name=consoleButton}, Path=IsChecked}">
+
+                <VerticalStackLayout>
+
+                    <Label
+                        Text="Console"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <CollectionView>
+
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Frame
+                toolkit:DockLayout.DockPosition="Top"
+                HeightRequest="30"
+                MaximumHeightRequest="50"
+                
+                Margin="5,0,5,0"
+                Padding="0"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+                
+                <CollectionView>
+
+                </CollectionView>
+            </Frame>
+
+            <Frame
+                x:Name="editorFrame"
+                
+                Margin="5,0,5,0"
+                Padding="0"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+
+                <Grid
+                    Margin="0"
+                    Padding="0">
+                    
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Frame
+                        Grid.Column="0"
+                        
+                        WidthRequest="50"
+                        
+                        Margin="0,0,3,0"
+                        Padding="0"
+                        
+                        CornerRadius="3"
+                        BorderColor="{StaticResource Gray500}"
+                        BackgroundColor="{StaticResource Gray550}">
+                        <CollectionView>
+
+                        </CollectionView>
+                    </Frame>
+
+                    <Editor
+                        Grid.Column="1"
+                        
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False"
+                        TextColor="White"
+                        Margin="0"
+                            
+                        BindingContext="{x:Reference Name=editorFrame}"
+                        MaximumHeightRequest="{Binding Path=Height}"/>
+                </Grid>
+            </Frame>
+        </toolkit:DockLayout>
+    </Grid>
+
+</ContentPage>

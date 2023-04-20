@@ -50,7 +50,7 @@ namespace UVSimLogic_UnitTests
         public void RunProgram_BadInput()
         {
             BasicMLSim _testCaseObject = new();
-            UVSimAssemblyManager _manager = new();
+            BasicMLAssemblyManager _manager = new();
 
             _testCaseObject.LoadProgram(_manager.ParseProgram(new string[] {"9900"}).Words);
 
@@ -61,7 +61,7 @@ namespace UVSimLogic_UnitTests
         public void RunProgram_GoodInput()
         {
             BasicMLSim _testCaseObject = new();
-            UVSimAssemblyManager _manager = new();
+            BasicMLAssemblyManager _manager = new();
 
             _testCaseObject.LoadProgram(_manager.ParseProgram(new string[] 
             {

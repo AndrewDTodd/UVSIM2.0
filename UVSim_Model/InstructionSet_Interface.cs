@@ -27,16 +27,30 @@ using System.Numerics;
 using System.Globalization;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Collections.ObjectModel;
 
 namespace UVSim
 {
     /// <summary>
     /// Used to represent the range of registers that are general purpose in the subsequent property
     /// </summary>
-    public struct IndexRange
+    public readonly struct IndexRange
     {
-        public int startIndex;
-        public int endIndex;
+        /// <summary>
+        /// The index that marks the start of the range
+        /// </summary>
+        public readonly int startIndex;
+        /// <summary>
+        /// The index that marks the end of the range
+        /// </summary>
+        public readonly int endIndex;
+        /// <summary>
+        /// Constructor to initialize and define the Index Range
+        /// </summary>
+        /// <param name="startIndex">The index number the range starts at</param>
+        /// <param name="endIndex">The index number the range ends at</param>
+        public IndexRange(int startIndex, int endIndex) =>
+            (this.startIndex, this.endIndex) = (startIndex, endIndex);
     }
 
     /// <summary>
@@ -69,24 +83,66 @@ namespace UVSim
         /// </summary>
         public readonly int? _stackPointerIndex;
 
+        /// <summary>
+        /// Constructor to initialize and define the instruction set
+        /// </summary>
+        /// <param name="pc">The index of the program counter register</param>
+        /// <param name="gpr">The range of indexes in the set of registers that are general purpose registers</param>
+        /// <param name="cpsr">The index of the Current Program Status Register</param>
+        /// <param name="lr">The index of the link register</param>
+        /// <param name="sp">The index of the stack pointer register</param>
         public Registers(int pc, IndexRange gpr, int cpsr, int? lr = null, int? sp = null) =>
             (_programCounterIndex, _genPurposeRegisters, _cpsrIndex, _linkRegisterIndex, _stackPointerIndex) = (pc, gpr, cpsr, lr, sp);
     }
+
     /// <summary>
-    /// Abstract class that serves as the interface for defining an instructin set to be used by an <seealso cref="ArchitectureSim_Interface{WordType, OPCodeWordType}"/>
+    /// Interface to facilitate substitution for <seealso cref="InstructionSet_Interface{WordType}"/>
+    /// </summary>
+    public interface IInstructionSet
+    {
+        /// <summary>
+        /// Parameter for optaining the register index of the architectures program counter
+        /// </summary>
+        public int ProgramCounterIndex { get; }
+
+        /// <summary>
+        /// Parameter for obtaining the indexes of the registers that are general purpose
+        /// </summary>
+        public IndexRange GeneralPurposeRegistersIndexes { get; }
+
+        /// <summary>
+        /// Parameter for obtaining the index of the curent program status register
+        /// </summary>
+        public int CPSRIndex { get; }
+
+        /// <summary>
+        /// Parameter for obtaining the index of the link register
+        /// </summary>
+        public int? LinkRegisterIndex { get; }
+        
+        /// <summary>
+        /// Parameter for obtaining the index of the stack pointer
+        /// </summary>
+        public int? StackPointerIndex { get; }
+    }
+
+    /// <summary>
+    /// Abstract class that serves as the interface for defining an instruction set to be used by an <seealso cref="ArchitectureSim_Interface{WordType}"/>
     /// </summary>
     /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
-    /// <typeparam name="OPCodeWordType">An unsigned integer type that specifies the word size of the OP codes and operands used in the architecture</typeparam>
-    [Serializable]
-    public abstract class InstructionSet_Interface<WordType, OPCodeWordType> where WordType : IBinaryInteger<WordType>, new()
-        where OPCodeWordType : IUnsignedNumber<OPCodeWordType>, new()
+    //[Serializable]
+    public abstract class InstructionSet_Interface<WordType> : IInstructionSet
+        where WordType : IBinaryInteger<WordType>, new()
     {
         #region FIELDS
         /// <remarks>
         /// Stores a set of key vallues that are OP codes(Keys) and delegates(values) to impementations that handle those operations
         /// </remarks>
-        protected readonly Dictionary<WordType, OP>? _instructionSet;
+        protected readonly Dictionary<int, OP>? _instructionSet;
 
+        /// <summary>
+        /// The registers definition for this instruction set. See also <seealso cref="RegionInfo"/>
+        /// </summary>
         protected readonly Registers _registers;
         #endregion
 
@@ -118,9 +174,9 @@ namespace UVSim
         public int? StackPointerIndex { get => _registers._stackPointerIndex; }
 
         /// <remarks>
-        /// Used to initialize the <seealso cref="instructionSet"/> field
+        /// Used to initialize the <see cref="_instructionSet"/> field
         /// </remarks>
-        protected Dictionary<WordType, OP> InstructionSet { init => _instructionSet = value; }
+        protected Dictionary<int, OP> InstructionSet { init => _instructionSet = value; }
 
         /// <summary>
         /// Can index into the object with the [] operator to see if the instruction set contains a certain OP code
@@ -129,7 +185,7 @@ namespace UVSim
         /// <returns></returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentException"></exception>
-        public virtual OP this[WordType key] 
+        public virtual OP this[int key] 
         { 
             get
             {
@@ -152,7 +208,7 @@ namespace UVSim
         /// <returns></returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentException"></exception>
-        public virtual OP QueryOP(WordType opCode)
+        public virtual OP QueryOP(int opCode)
         {
             if (_instructionSet == null)
                 throw new System.InvalidOperationException("Instruction set has not been initialized. Can't query its Dictionary.");
@@ -165,12 +221,29 @@ namespace UVSim
         #endregion
 
         #region CONSTRUCTORS
+        /// <summary>
+        /// Create and initialize the instruction set. Called by type deriving from this
+        /// </summary>
+        /// <param name="PCIndex">The index of the program counter register</param>
+        /// <param name="GeneralPurposeRegisters">The range of indexes that are general purpose registers</param>
+        /// <param name="CPSRIndex">The index of the current program status register</param>
+        /// <param name="LinkRegisterIndex">The index of the link register if one is supported. Default is null, unsupported</param>
+        /// <param name="StackPointerIndex">The index of the stack pointer register if one is supported. Default is null, unsupported</param>
         protected InstructionSet_Interface(int PCIndex, IndexRange GeneralPurposeRegisters, int CPSRIndex,
             int? LinkRegisterIndex = null, int? StackPointerIndex = null) =>
             (this._registers) = 
             (new Registers(PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex));
 
-        protected InstructionSet_Interface(Dictionary<WordType, OP> instructionSet,
+        /// <summary>
+        /// Create and initialize the instruction set. Called by type deriving from this
+        /// </summary>
+        /// <param name="instructionSet">A dictionary defining the instruction sets OpCodes and implementation</param>
+        /// <param name="PCIndex">The index of the program counter register</param>
+        /// <param name="GeneralPurposeRegisters">The range of indexes that are general purpose registers</param>
+        /// <param name="CPSRIndex">The index of the current program status register</param>
+        /// <param name="LinkRegisterIndex">The index of the link register if one is supported. Default is null, unsupported</param>
+        /// <param name="StackPointerIndex">The index of the stack pointer register if one is supported. Default is null, unsupported</param>
+        protected InstructionSet_Interface(Dictionary<int, OP> instructionSet,
             int PCIndex, IndexRange GeneralPurposeRegisters, int CPSRIndex,
             int? LinkRegisterIndex = null, int? StackPointerIndex = null) =>
             (this._instructionSet, this._registers) =
@@ -178,7 +251,13 @@ namespace UVSim
         #endregion
 
         #region OPS
-        public delegate void OP(WordType[] memory, WordType[] registers, ref OPCodeWordType operand);
+        /// <summary>
+        /// Delegate for OpCodes supported by the instruction set. Defines what information is available to any operation
+        /// </summary>
+        /// <param name="memory">Referance to the systems memory</param>
+        /// <param name="registers">Referance to te systems registers</param>
+        /// <param name="instruction">Referance to the instruction word to be operated on</param>
+        public delegate void OP(ObservableCollection<WordType> memory, ObservableCollection<WordType> registers, ref WordType instruction);
         #endregion
     }
 }

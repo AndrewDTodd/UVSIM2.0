@@ -1,0 +1,753 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             
+             x:Class="UVSim_View.SimPage"
+             
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             
+             xmlns:viewmodel="clr-namespace:UVSim.ViewModel;assembly=UVSim_ViewModel">
+
+    <!--:DataType="viewmodel:ArchitectureSimViewModel"-->
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" IsEnabled="False"/>
+    </Shell.BackButtonBehavior>
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="Save"/>
+            <MenuFlyoutItem Text="Save As"/>
+            <MenuFlyoutItem Text="Save All"/>
+            <MenuFlyoutSeparator/>
+            <MenuFlyoutItem Text="Exit"/>
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+    <ContentPage.Resources>
+        <ControlTemplate x:Key="DockOptionsControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource DockOptionsButton}">
+
+                    <Button.Triggers>
+                        <DataTrigger
+                            TargetType="Button"
+                            Binding="{Binding Source={RelativeSource TemplatedParent}, Path=IsChecked}"
+                            Value="True">
+
+                            <Setter
+                                Property="BorderColor"
+                                Value="AliceBlue"/>
+                        </DataTrigger>
+                    </Button.Triggers>
+
+                    <Button.GestureRecognizers>
+                        <TapGestureRecognizer
+                            NumberOfTapsRequired="1"
+                            Tapped="DockOptionsButton_Tapped"/>
+                    </Button.GestureRecognizers>
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="EditModeControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource MenueButton}"
+                    
+                    Clicked="EditModeButton_Clicked">
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="SimModeControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource MenueButton}"
+                    
+                    BorderColor="AliceBlue">
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+    </ContentPage.Resources>
+
+    <Grid
+        BackgroundColor="{StaticResource Gray600}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <HorizontalStackLayout
+            Grid.Row="0"
+            
+            Padding="0"
+            Margin="0,3,0,3"
+            
+            MinimumHeightRequest="20"
+            
+            HorizontalOptions="Center">
+
+            <Frame
+                Padding="5,2,5,2"
+            
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray900}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                HorizontalOptions="Center">
+
+                <HorizontalStackLayout
+                HorizontalOptions="Center"
+                Padding="0"
+                Margin="0">
+
+                    <Button
+                        Text="Build"
+                        Style="{StaticResource MenueButton}"/>
+
+                    <!--<Button
+                        Text="Resource Configuration"/>-->
+
+                    <Button
+                        Text="Run"
+                        Style="{StaticResource MenueButton}"/>
+                </HorizontalStackLayout>
+            </Frame>
+
+            <Frame
+                Padding="5,2,5,2"
+            
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray900}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                HorizontalOptions="Center">
+
+                <HorizontalStackLayout
+                HorizontalOptions="Center"
+                Padding="0"
+                Margin="0">
+
+                    <!--<RadioButton
+                        x:Name="editModeButton"
+                        
+                        IsChecked="True"
+                        
+                        Content="Edit Mode"
+                        ControlTemplate="{StaticResource EditModeControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>-->
+                    <Button
+                        Text="Edit Mode"
+                        Style="{StaticResource MenueButton}"
+                    
+                        Clicked="EditModeButton_Clicked">
+                    </Button>
+
+                    <!--<RadioButton
+                        x:Name="simModeButton"
+                        
+                        IsChecked="False"
+                        
+                        Content="Simulator Mode"
+                        ControlTemplate="{StaticResource SimModeControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>-->
+                    <Button
+                        Text="Simulator Mode"
+                        Style="{StaticResource MenueButton}"
+                        
+                        BorderColor="AliceBlue">
+                    </Button>
+                </HorizontalStackLayout>
+            </Frame>
+        </HorizontalStackLayout>
+
+        <toolkit:DockLayout
+            Grid.Row="1"
+            
+            BackgroundColor="{StaticResource Gray600}"
+            
+            Margin="0"
+            Padding="0"
+            
+            MinimumHeightRequest="400"
+            MinimumWidthRequest="600">
+
+            <Frame
+                toolkit:DockLayout.DockPosition="Left"
+                WidthRequest="330"
+                MaximumWidthRequest="350"
+                
+                Margin="5,0,0,5"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+
+                <VerticalStackLayout>
+                    <Label
+                        Text="Programs Collection Explorer"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <SearchBar
+                        Placeholder="Search Programs"
+                        PlaceholderColor="AntiqueWhite"
+                        CancelButtonColor="{StaticResource Gray550}"
+                        
+                        BackgroundColor="{StaticResource Gray500}"
+                        
+                        MinimumHeightRequest="30"/>
+
+                    <CollectionView>
+
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="30"
+                MaximumHeightRequest="30"
+                
+                HorizontalOptions="Start"
+                
+                Margin="5,0,5,5"
+                Padding="0"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+
+                <HorizontalStackLayout
+                    
+                    Padding="0"
+                    Margin="0">
+
+                    <RadioButton
+                        x:Name="errorListButton"
+                        
+                        IsChecked="True"
+                        
+                        Content="Error List"
+                        ControlTemplate="{StaticResource DockOptionsControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>
+
+                    <RadioButton
+                        x:Name="outputButton"
+                        
+                        Content="Output"
+                        ControlTemplate="{StaticResource DockOptionsControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>
+
+                    <RadioButton
+                        x:Name="consoleButton"
+                        
+                        Content="Console"
+                        ControlTemplate="{StaticResource DockOptionsControlTemplate}"
+                        
+                        Margin="0"
+                        Padding="0">
+                    </RadioButton>
+                </HorizontalStackLayout>
+            </Frame>
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="220"
+                MaximumHeightRequest="230"
+                
+                Margin="5,5,5,0"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                IsVisible="{Binding Source={x:Reference Name=errorListButton}, Path=IsChecked}">
+
+                <VerticalStackLayout>
+
+                    <Label
+                        Text="Error List"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <CollectionView>
+                        
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="220"
+                MaximumHeightRequest="230"
+                
+                Margin="5,5,5,0"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                IsVisible="{Binding Source={x:Reference Name=outputButton}, Path=IsChecked}">
+
+                <VerticalStackLayout>
+
+                    <Label
+                        Text="Output"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <CollectionView>
+
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+            <Frame
+                toolkit:DockLayout.DockPosition="Bottom"
+                HeightRequest="220"
+                MaximumHeightRequest="230"
+                
+                Margin="5,5,5,0"
+                Padding="5"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}"
+                
+                IsVisible="{Binding Source={x:Reference Name=consoleButton}, Path=IsChecked}">
+
+                <VerticalStackLayout>
+
+                    <Label
+                        Text="Console"
+                        
+                        Margin="0"
+                        Padding="0"/>
+
+                    <CollectionView>
+
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Frame
+                toolkit:DockLayout.DockPosition="Top"
+                HeightRequest="30"
+                MaximumHeightRequest="50"
+                
+                Margin="5,0,5,0"
+                Padding="0"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+                
+                <CollectionView>
+
+                </CollectionView>
+            </Frame>
+
+            <Frame
+                x:Name="resourceViewFrame"
+                
+                Margin="5,0,5,0"
+                Padding="0"
+                
+                CornerRadius="3"
+                BorderColor="{StaticResource Gray500}"
+                BackgroundColor="{StaticResource Gray550}">
+
+                <Grid
+                    Margin="0"
+                    Padding="0"
+                    
+                    VerticalOptions="Start"
+                    HorizontalOptions="Start">
+                    
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!--Registers View Frame-->
+                    <Frame
+                        Grid.Row="0"
+                        Grid.Column="0"
+                            
+                        Margin="2,2,2,2"
+                        Padding="2"
+                
+                        CornerRadius="3"
+                        BorderColor="{StaticResource Gray400}"
+                        BackgroundColor="Transparent"
+                            
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Fill">
+
+                        <VerticalStackLayout
+                            Margin="2"
+                            Padding="0">
+
+                            <Frame
+                                Margin="0,0,0,2"
+                                Padding="3"
+                                
+                                CornerRadius="3"
+                                BorderColor="{StaticResource Gray400}"
+                                BackgroundColor="Transparent"
+                                
+                                HorizontalOptions="Fill"
+                                VerticalOptions="Start">
+                                
+                                <Label
+                                    Text="Register States"
+                                    HorizontalOptions="Start"
+                                    Padding="0"
+                                    Margin="3"/>
+                            </Frame>
+
+                            <ScrollView
+                                VerticalScrollBarVisibility="Default"
+                                HorizontalScrollBarVisibility="Never">
+                                <Grid
+                                    Margin="0"
+                                    Padding="0"
+                                
+                                    VerticalOptions="Fill">
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ListView
+                                        Grid.Column="0"
+                                    
+                                        ItemsSource="{Binding RegisterDescriptors}"
+                                    
+                                        FlowDirection="LeftToRight"
+                                    
+                                        HorizontalOptions="Start"
+                                    
+                                        SelectionMode="None"
+                                    
+                                        VerticalScrollBarVisibility="Never"
+                                        HorizontalScrollBarVisibility="Never">
+
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <ViewCell>
+
+                                                    <Frame
+                                                        BorderColor="CadetBlue"
+                                                        BackgroundColor="Transparent"
+                                                        Padding="3"
+                                                        Margin="5"
+                                                    
+                                                        MinimumWidthRequest="200">
+
+                                                        <Label
+                                                            Text="{Binding .}"
+                                                            HorizontalOptions="End"
+                                                            FlowDirection="RightToLeft"/>
+                                                    </Frame>
+                                                </ViewCell>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+
+                                    <ListView
+                                        Grid.Column="1"
+                                    
+                                        ItemsSource="{Binding ArchitectureSim.Registers}"
+                                    
+                                        HorizontalOptions="End"
+                                    
+                                        SelectionMode="None"
+                                    
+                                        VerticalScrollBarVisibility="Never"
+                                        HorizontalScrollBarVisibility="Never">
+
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <ViewCell>
+
+                                                    <Frame
+                                                        BorderColor="green"
+                                                        BackgroundColor="{StaticResource Gray500}"
+                                                        Padding="3"
+                                                        Margin="5"
+                                
+                                                        MinimumWidthRequest="50"
+                                                        MaximumWidthRequest="70"
+                                
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center">
+
+                                                        <Label
+                                                            Text="{Binding ., StringFormat='{}{0:D5}'}"
+                                                            HorizontalOptions="Center"/>
+                                                    </Frame>
+                                                </ViewCell>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Grid>
+                            </ScrollView>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!--Memory Viewer Frame-->
+                    <Frame
+                        Grid.Row="0"
+                        Grid.Column="1"
+                            
+                        Margin="2,2,2,2"
+                        Padding="0"
+                
+                        CornerRadius="3"
+                        BorderColor="{StaticResource Gray400}"
+                        BackgroundColor="Transparent"
+                            
+                        HorizontalOptions="End"
+                        VerticalOptions="Start">
+                        
+                        <Grid
+                            Grid.Row="0"
+                            Grid.Column="1"
+                        
+                            Margin="0"
+                            Padding="0"
+                        
+                            VerticalOptions="Start"
+                            HorizontalOptions="End">
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <CollectionView
+                                x:Name="columnIndex"
+                            
+                                Grid.Row="0"
+                                Grid.Column="1"
+                            
+                                BackgroundColor="Transparent"
+                                
+                                VerticalOptions="Start"
+                                HorizontalOptions="Start"
+                    
+                                Margin="0"
+                
+                                ItemsSource="{Binding ColumnIndex}"
+                                SelectionMode="None"
+                        
+                                ItemSizingStrategy="MeasureFirstItem"
+                            
+                                MinimumWidthRequest="{Binding Source={x:Reference Name=addressView}, Path=Width}"
+                                MaximumWidthRequest="{Binding Source={x:Reference Name=addressView}, Path=Width}"
+                            
+                                VerticalScrollBarVisibility="Never"
+                                HorizontalScrollBarVisibility="Never">
+
+                                <CollectionView.ItemsLayout>
+                                    <GridItemsLayout
+                                    Orientation="Vertical"
+                                    Span="10"
+                                    
+                                    VerticalItemSpacing="0"
+                                    HorizontalItemSpacing="3"/>
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Frame
+                                            BorderColor="CadetBlue"
+                                            BackgroundColor="Transparent"
+                                            Padding="3"
+                                            Margin="5"
+                                
+                                            MinimumWidthRequest="50"
+                                            MaximumWidthRequest="60"
+                                
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center">
+
+                                            <Label
+                                                Text="{Binding .}"
+                                                HorizontalOptions="Center"/>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                            
+                            <CollectionView
+                                x:Name="rowIndex"
+                            
+                                Grid.Row="1"
+                                Grid.Column="0"
+                            
+                                BackgroundColor="Transparent"
+                                
+                                VerticalOptions="Start"
+                                HorizontalOptions="End"
+                                
+                                MinimumHeightRequest="{Binding Source={x:Reference Name=addressView}, Path=Height}"
+                                MaximumHeightRequest="{Binding Source={x:Reference Name=addressView}, Path=Height}"
+                            
+                                WidthRequest="60"
+                    
+                                Margin="0"
+                
+                                ItemsSource="{Binding RowIndex}"
+                                SelectionMode="None"
+                        
+                                ItemSizingStrategy="MeasureFirstItem"
+                            
+                                HorizontalScrollBarVisibility="Never"
+                                VerticalScrollBarVisibility="Never">
+
+                                <CollectionView.ItemsLayout>
+                                    <GridItemsLayout
+                                    Orientation="Horizontal"
+                                    Span="10"
+                                    
+                                    VerticalItemSpacing="0"
+                                    HorizontalItemSpacing="3"/>
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Frame
+                                            BorderColor="CadetBlue"
+                                            BackgroundColor="Transparent"
+                                            Padding="3"
+                                            Margin="5"
+                                
+                                            MinimumWidthRequest="50"
+                                            MaximumWidthRequest="60"
+                                
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center">
+
+                                            <Label
+                                                Text="{Binding .}"
+                                                HorizontalOptions="Center"/>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                            
+                            <CollectionView
+                                x:Name="addressView"
+                            
+                                Grid.Row="1"
+                                Grid.Column="1"
+                            
+                                BackgroundColor="Transparent"
+                                MinimumHeightRequest="400"
+                                MaximumHeightRequest="500"
+                                MinimumWidthRequest="600"
+                                MaximumWidthRequest="750"
+                                
+                                VerticalOptions="Start"
+                                HorizontalOptions="Start"
+                    
+                                Margin="0"
+                
+                                ItemsSource="{Binding ArchitectureSim.Memory}"
+                                SelectionMode="None"
+                        
+                                ItemSizingStrategy="MeasureFirstItem"
+                            
+                                VerticalScrollBarVisibility="Never"
+                                HorizontalScrollBarVisibility="Never">
+
+                                <CollectionView.ItemsLayout>
+                                    <GridItemsLayout
+                                    Orientation="Vertical"
+                                    Span="10"
+                                    
+                                    VerticalItemSpacing="0"
+                                    HorizontalItemSpacing="3"/>
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Frame
+                                        BorderColor="green"
+                                        BackgroundColor="{StaticResource Gray500}"
+                                        Padding="3"
+                                        Margin="5"
+                                
+                                        MinimumWidthRequest="50"
+                                        MaximumWidthRequest="60"
+                                
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center">
+
+                                            <Label
+                                            Text="{Binding ., StringFormat='{}{0:D4}'}"
+                                            HorizontalOptions="Center"/>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Frame>
+                </Grid>
+            </Frame>
+        </toolkit:DockLayout>
+    </Grid>
+
+</ContentPage>

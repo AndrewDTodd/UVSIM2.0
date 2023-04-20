@@ -8,7 +8,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void CreateProgram_ProgramTooBig()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.ArgumentException>(() => _testManagerObject.CreateAssembly(new string[101]));
         }
@@ -16,7 +16,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void CreateProgram_ProgramEmpty()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.ArgumentException>(() => _testManagerObject.CreateAssembly(Array.Empty<string>()));
         }
@@ -24,7 +24,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void CreateProgram_InvalidInput()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.ArgumentException>(() => _testManagerObject.CreateAssembly(new string[] { "999999" }));
         }
@@ -32,7 +32,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void CreateProgram_ValidInput()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             string program = "+1107,+2007,+3106,+2107,+4108,+4000,#+0003,#+0001,+4300";
 
@@ -43,7 +43,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void DeleteProgram_CollectionEmpty()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.InvalidOperationException>(() => _testManagerObject.DeleteProgram(0));
         }
@@ -51,7 +51,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void DeleteProgram_BadIndex()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             string program = "+1107,+2007,+3106,+2107,+4108,+4000,#+0003,#+0001,+4300";
 
@@ -63,7 +63,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void DeleteProgram_GoodIndex()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             string program = "+1107,+2007,+3106,+2107,+4108,+4000,#+0003,#+0001,+4300";
 
@@ -77,7 +77,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void SerializePrograms_InvalidFilePath()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.ArgumentNullException>(() => _testManagerObject.SerializeAssemblies(new int[] { 0 }, ""));
         }
@@ -85,7 +85,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void SerializePrograms_CollectionEmpty()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.InvalidOperationException>(() => _testManagerObject.SerializeAssemblies(new int[] { 0 }, "../"));
         }
@@ -93,7 +93,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void SerializePrograms_Sucess()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             string program = "+1107,+2007,+3106,+2107,+4108,+4000,#+0003,#+0001,+4300";
 
@@ -117,7 +117,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void DeserializePrograms_EmptyFilePath()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             Assert.ThrowsException<System.ArgumentException>(() => _testManagerObject.DeserializeAssemblies(new string[] { "" }));
         }
@@ -125,7 +125,7 @@ namespace UVSimLogic_UnitTests
         [TestMethod]
         public void DeserializePrograms_Success()
         {
-            UVSimAssemblyManager _testManagerObject = new();
+            BasicMLAssemblyManager _testManagerObject = new();
 
             string program = "+1107,+2007,+3106,+2107,+4108,+4000,#+0003,#+0001,+4300";
 

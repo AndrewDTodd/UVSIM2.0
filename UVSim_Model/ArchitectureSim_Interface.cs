@@ -24,32 +24,96 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Numerics;
+using System.Collections;
+using Microsoft.Win32;
+
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace UVSim
 {
+    /**** Interface could not be used effectively. CONSIDER REMOVED ****
+    /// <summary>
+    /// Interface for Architecture Sims. Facilitates Substitutability for <seealso cref="ArchitectureSim_Interface{WordType}"/>
+    /// </summary>
+    public interface IArchitectureSim
+    {
+        /// <summary>
+        /// Parameter for obtaining the simulators registers
+        /// </summary>
+        public IList Registers { get; }
+
+        /// <summary>
+        /// Parameter for obtaining the simulators system memory
+        /// </summary>
+        public IList Memory { get; }
+
+        /// <summary>
+        /// Parameter for obtaining the simulators instruction set
+        /// </summary>
+        public IInstructionSet InstructionSet {get;}
+
+        /// <summary>
+        /// Allows a caller to send a set of instructions (program) to the simulator to be loaded into memory.
+        /// </summary>
+        public abstract void LoadProgram(IList<ValueType> program);
+
+        /// <summary>
+        /// If called after a program is sucessfully loaded into simulator memory, will run the loaded program
+        /// </summary>
+        public abstract void RunProgram();
+    }
+    */
+
     /// <summary>
     /// This abstract class serves as the interface used to create any concrete class whos purpose
     /// is to define and implement an Architecture for a machine language simulator.
     /// </summary>
     /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
-    /// <typeparam name="OPCodeWordType">An unsigned integer type that specifies the word size of the OP codes and operands used in the architecture. Also defines the addressable space.</typeparam>
-    public abstract class ArchitectureSim_Interface<WordType, OPCodeWordType> where WordType : IBinaryInteger<WordType>, new()
-        where OPCodeWordType : IUnsignedNumber<OPCodeWordType>, IBinaryInteger<OPCodeWordType>, new()
+    public abstract partial class ArchitectureSim_Interface<WordType> : ObservableObject
+        where WordType : IBinaryInteger<WordType>, new()
     {
         #region FIELDS
-        protected WordType[] registers;
-        protected WordType[] memory;
+        /// <summary>
+        /// General purpose and control registers for the Architecture
+        /// </summary>
+        protected ObservableCollection<WordType> registers;
+        
+        /// <summary>
+        /// The avalable system memory for the Architecture
+        /// </summary>
+        protected ObservableCollection<WordType> memory;
 
-        //0 for false, 1 for true
+        /// <summary>
+        /// Marks if a program is loaded into the simulator. 0 for false, 1 for true
+        /// </summary>
         protected  int _programLoaded = 0;
 
-        protected readonly InstructionSet_Interface<WordType, OPCodeWordType> _instructionSet;
+        /// <summary>
+        /// Represents the number or addressable words the system has in its memory
+        /// </summary>
+        protected int _memorySize;
+
+        /// <summary>
+        /// Defines the instruction set supported by this architecture simulator <seealso cref="InstructionSet_Interface{WordType}"/>
+        /// </summary>
+        protected readonly InstructionSet_Interface<WordType> _instructionSet;
         #endregion
 
         #region PROPERTIES
-        public WordType[] Registers { get => registers; }
-        public WordType[] Memory { get => memory; }
-        public InstructionSet_Interface<WordType, OPCodeWordType> InstructionSet { get => _instructionSet; }
+        /// <summary>
+        /// Property accessor for the simulators registers
+        /// </summary>
+        public ObservableCollection<WordType> Registers { get => registers; }
+        /// <summary>
+        /// Property accessor for the simulators system memory
+        /// </summary>
+        public ObservableCollection<WordType> Memory { get => memory; }
+        
+        /// <summary>
+        /// Property accessor for the architectures instruction set
+        /// </summary>
+        public IInstructionSet InstructionSet { get => _instructionSet; }
         #endregion
 
         #region CONSTRUCTORS
@@ -58,10 +122,14 @@ namespace UVSim
         /// </summary>
         /// <param name="numOfRegisters">Defines the number of registers to be used in the defined Architecture</param>
         /// <param name="memAddresses">Defines the number of addressable words in memory in the simulated system</param>
-        protected ArchitectureSim_Interface(OPCodeWordType numOfRegisters, OPCodeWordType memAddresses, InstructionSet_Interface<WordType, OPCodeWordType> instructionSet)
+        /// <param name="instructionSet">The <seealso cref="InstructionSet_Interface{WordType}"/> opject that defines the instruction set supported by this architecture simulator</param>
+        protected ArchitectureSim_Interface(int numOfRegisters, int memAddresses, InstructionSet_Interface<WordType> instructionSet)
         {
-            registers = new WordType[Convert.ToUInt64(numOfRegisters)];
-            memory = new WordType[Convert.ToInt64(memAddresses)];
+            registers = new(new WordType[numOfRegisters]);
+
+            memory = new(new WordType[memAddresses]);
+
+            _memorySize = memAddresses;
 
             _instructionSet = instructionSet;
         }
@@ -76,15 +144,15 @@ namespace UVSim
         /// <para>It is expected that the extending class will implement necessary set up with its registers as this class cannot have knowledge of the Architectures register design</para>
         /// </remarks>
         /// <param name="program"> (ref)erence to a collection containing the instructions that constitute the program</param>
-        /// <exception cref="System.ArgumentNullException"></exception>
+        /// <exception cref="System.ArgumentNullException">Thrown is a null or empty program is passed in</exception>
         /// <exception cref="System.ArgumentException"></exception>
-        public virtual void LoadProgram(IList<WordType>? program)
+        public virtual void LoadProgram(IList<WordType> program)
         {
-            if(program == null)
-                throw new System.ArgumentNullException(nameof(program));
+            if(program.Count == 0)
+                throw new System.ArgumentException("The program passed in is empty");
 
-            if (program.Count > memory.Length)
-                throw new System.ArgumentException($"The program is too big. This architecture only supports a memory of {memory.Length} addresses.");
+            if (program.Count > _memorySize)
+                throw new System.ArgumentException($"The program is too big. This architecture only supports a memory of {_memorySize} addresses.");
 
             for(int i = 0; i < program.Count; i++)
             {
@@ -107,12 +175,16 @@ namespace UVSim
         #endregion
 
         #region OPERATORS
+        /// <summary>
+        /// String representation of the Architecure's resources
+        /// </summary>
+        /// <returns>String configured with the architectures resource states</returns>
         public override string ToString()
         {
             string output = $"---Simulator State---\n" +
                 $"Registers: ";
 
-            for(int i = 0; i < registers.Length; i++)
+            for(int i = 0; i < _memorySize; i++)
             {
                 output += $"R{i}[{registers[i]}], ";
             }
@@ -126,7 +198,7 @@ namespace UVSim
                 output += $"{r}\t";
                 for (int c = 0; c < 10; c++)
                 {
-                    string? addressContents = memory[(r * 10) + c]?.ToString()?.PadLeft(4, '0');
+                    string? addressContents = memory[(r * 10) + c].ToString()?.PadLeft(4, '0');
 
                     addressContents ??= "****";
 
