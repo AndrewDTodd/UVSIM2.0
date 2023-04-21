@@ -21,15 +21,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Numerics;
 using System.Reflection.Metadata;
 using System.Text;
 
 namespace UVSim
 {
     /// <summary>
-    /// Implements the Assembly interface define in <seealso cref="Assembly_FixedSize{WordType}"/> defining the assembly standard for the UVSim application
+    /// Implements the Assembly interface define in <seealso cref="Assembly_FixedSize"/> defining the assembly standard for the UVSim application
     /// </summary>
-    public class BasicMLAssembly : Assembly_FixedSize<Int16>
+    public class BasicMLAssembly : Assembly_FixedSize
     {
         #region FIELDS
         #endregion
@@ -40,9 +41,9 @@ namespace UVSim
         /// </summary>
         /// <param name="index">The location of the word to retrieve</param>
         /// <returns></returns>
-        public override Int16 this[int index]
+        public override Int64 this[int index]
         {
-            get => Words[index];
+            get => BitConverter.ToInt16(Words.ToArray(), index);
         }
         #endregion
 
@@ -50,22 +51,25 @@ namespace UVSim
         /// <summary>
         /// Construct and initialize this concrete Assembly type with an assembly name
         /// </summary>
-        /// <param name="assemblyName">The name of the assembly</param>
-        public BasicMLAssembly(string assemblyName) : base(assemblyName, "bmlo", 100)
+        /// <param name="assemblyName">The name of the assembly</param
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public BasicMLAssembly(string assemblyName, InstructionSet_Interface instructionSet) : base(assemblyName, "bmlo", 100, 2, instructionSet)
         {}
         /// <summary>
         /// Construct and initialize this concrete Assembly type with an assembly name as well as an initial program
         /// </summary>
         /// <param name="assemblyName">The name of the assembly</param>
         /// <param name="programText">The text to compile from</param>
-        public BasicMLAssembly(string assemblyName, string[] programText) : base(assemblyName, "bmlo", programText, 100)
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public BasicMLAssembly(string assemblyName, string[] programText, InstructionSet_Interface instructionSet) : base(assemblyName, "bmlo", programText, 100, 2, instructionSet)
         {}
         /// <summary>
         /// Construct and initialize this concrete Assembly type with an assembly name as well as an initial program copied from an existing collection of words
         /// </summary>
         /// <param name="assemblyName">The name of the assembly</param>
         /// <param name="words">Collection of words to copy</param>
-        public BasicMLAssembly(string assemblyName, Collection<Int16> words) : base(assemblyName, "bmlo", words, 100)
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public BasicMLAssembly(string assemblyName, Collection<byte> words, InstructionSet_Interface instructionSet) : base(assemblyName, "bmlo", words, 100, 2, instructionSet)
         {}
         #endregion
 
@@ -79,29 +83,78 @@ namespace UVSim
             if (programText.Length > WordsCount)
                 throw new System.ArgumentException($"Program contains more words than system supports!\nSystem supports up to {WordsCount} words per program, program contains {programText.Length}");
 
-            for (int i = 0; i < programText.Length; i++)
+            Words.Clear();
+
+            for (int lineNum = 0; lineNum < programText.Length; lineNum++)
             {
-                string line = programText[i].Trim();
+                string[] line = programText[lineNum].Trim().Split();
 
-                if (line[0] != '#')
+                if (line.Length > 1)
                 {
-                    if (char.IsSymbol(line[0]))
-                        line = line[1..];
+                    if (!_instructionSet.TryQueryMnemonic(line[0], out int OpCode))
+                        throw new ArgumentException($"The mnemonic at line {lineNum} of the program {AssemblyName} is not valid. Entered Mnemonic ({line[0]})");
 
-                    if (!byte.TryParse(line[..2], out byte opCode))
-                        throw new System.ArgumentException($"Text of program file on line (word number) {i} could not be parsed properly!\nExpecting first two characters of text that can be parsed to {typeof(byte)}");
+                    Int16 instruction = (Int16)(OpCode << 11);
 
-                    if (!byte.TryParse(line[2..], out byte operand))
-                        throw new System.ArgumentException($"Text of program file on line (word number) {i} could not be parsed properly!\nExpecting last two characters of text that can be parsed to {typeof(byte)}");
+                    int bitsPerOperand = 12 / (line.Length - 1);
 
-                    this.Words[i] = BitConverter.ToInt16(new byte[2] { operand, opCode });
+                    int bitsToShift = 16 - bitsPerOperand;
+
+                    Int16 operand = 0;
+
+                    for (int wordNum = 1; wordNum < line.Length - 1; wordNum++)
+                    {
+                        if (!Int16.TryParse(line[wordNum], out operand))
+                            throw new ArgumentException($"Word {wordNum} at line {lineNum} of the program {AssemblyName} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+                    
+                        operand <<= bitsToShift;
+                        operand >>= (bitsPerOperand * wordNum);
+
+                        instruction |= operand;
+                    }
+
+                    if (!Int16.TryParse(line.Last(), out operand))
+                        throw new ArgumentException($"Word {line.Length - 1} at line {lineNum} of the program {AssemblyName} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+
+                    operand <<= (bitsToShift + 1);
+                    operand >>= (bitsPerOperand * (line.Length - 1) + 1);
+
+                    instruction |= operand;
+
+                    byte[] bytes = BitConverter.GetBytes(instruction);
+                    this.Words.Add(bytes[0]);
+                    this.Words.Add(bytes[1]);
                 }
                 else
                 {
-                    if (!Int16.TryParse(line[1..], out Int16 word))
-                        throw new System.ArgumentException($"Text of program file on line (word number) {i} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+                    if (line[0][0] != '#')
+                    {
+                        if (char.IsSymbol(line[0][0]))
+                            line[0] = line[0][1..];
 
-                    this.Words[i] = word;
+                        string mnemonic = line[0][..2];
+
+                        if (!_instructionSet.TryQueryMnemonic(mnemonic, out int OpCode))
+                            throw new ArgumentException($"The mnemonic at line {lineNum} of the program {AssemblyName} is not valid. Entered Mnemonic ({mnemonic})");
+
+                        if (!int.TryParse(line[0][2..], out int operand))
+                            throw new ArgumentException($"Text of program {AssemblyName} on line {lineNum} could not be parsed properly!\nExpecting last two characters of text that can be parsed to {typeof(int)}");
+
+                        Int16 instruction = (Int16)((OpCode << 11) | operand);
+                        byte[] bytes = BitConverter.GetBytes(instruction);
+                        this.Words.Add(bytes[0]);
+                        this.Words.Add(bytes[1]);
+                    }
+                    else
+                    {
+                        if (!Int16.TryParse(line[0][1..], out Int16 word))
+                            throw new System.ArgumentException($"Text of program file ({AssemblyName}) on line {lineNum} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+
+                        byte[] bytes = BitConverter.GetBytes(word);
+
+                        this.Words.Add(bytes[0]);
+                        this.Words.Add(bytes[1]);
+                    }
                 }
             }
 
@@ -117,29 +170,80 @@ namespace UVSim
             if (programText.Length > WordsCount)
                 throw new System.ArgumentException($"Program contains more words than system supports!\nSystem supports up to {WordsCount} words per program, program contains {programText.Length}");
 
-            BasicMLAssembly assembly = new(assemblyName);
+            BasicMLAssembly assembly = new(assemblyName, this._instructionSet);
 
-            for (int i = 0; i < programText.Length; i++)
+            assembly.Words.Clear();
+
+            for (int lineNum = 0; lineNum < programText.Length; lineNum++)
             {
-                if (programText[i][0] != '#')
+                string[] line = programText[lineNum].Trim().Split();
+
+                if (line.Length > 1)
                 {
-                    if (char.IsSymbol(programText[i][0]))
-                        programText[i] = programText[i][1..];
+                    if (!_instructionSet.TryQueryMnemonic(line[0], out int OpCode))
+                        throw new ArgumentException($"The mnemonic at line {lineNum} of the program {AssemblyName} is not valid. Entered Mnemonic ({line[0]})");
 
-                    if (!byte.TryParse(programText[i][..2], out byte opCode))
-                        throw new System.ArgumentException($"Text of program file on line (word number) {i} could not be parsed properly!\nExpecting first two characters of text that can be parsed to {typeof(byte)}");
+                    Int16 instruction = (Int16)(OpCode << 11);
 
-                    if (!byte.TryParse(programText[i][2..], out byte operand))
-                        throw new System.ArgumentException($"Text of program file on line (word number) {i} could not be parsed properly!\nExpecting last two characters of text that can be parsed to {typeof(byte)}");
+                    int bitsPerOperand = 12 / (line.Length - 1);
 
-                    assembly.Words[i] = BitConverter.ToInt16(new byte[2] { operand, opCode });
+                    int bitsToShift = 16 - bitsPerOperand;
+
+                    Int16 operand = 0;
+
+                    for (int wordNum = 1; wordNum < line.Length - 1; wordNum++)
+                    {
+                        if (!Int16.TryParse(line[wordNum], out operand))
+                            throw new ArgumentException($"Word {wordNum} at line {lineNum} of the program {AssemblyName} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+
+                        operand <<= bitsToShift;
+                        operand >>= (bitsPerOperand * wordNum);
+
+                        instruction |= operand;
+                    }
+
+                    if (!Int16.TryParse(line.Last(), out operand))
+                        throw new ArgumentException($"Word {line.Length - 1} at line {lineNum} of the program {AssemblyName} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+
+                    operand <<= (bitsToShift + 1);
+                    operand >>= (bitsPerOperand * (line.Length - 1) + 1);
+
+                    instruction |= operand;
+
+                    byte[] bytes = BitConverter.GetBytes(instruction);
+                    assembly.Words.Add(bytes[0]);
+                    assembly.Words.Add(bytes[1]);
                 }
                 else
                 {
-                    if (!Int16.TryParse(programText[i][1..], out Int16 word))
-                        throw new System.ArgumentException($"Text of program file on line (word number) {i} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+                    if (line[0][0] != '#')
+                    {
+                        if (char.IsSymbol(line[0][0]))
+                            line[0] = line[0][1..];
 
-                    assembly.Words[i] = word;
+                        string mnemonic = line[0][..2];
+
+                        if (!_instructionSet.TryQueryMnemonic(mnemonic, out int OpCode))
+                            throw new ArgumentException($"The mnemonic at line {lineNum} of the program {AssemblyName} is not valid. Entered Mnemonic ({mnemonic})");
+
+                        if (!int.TryParse(line[0][2..], out int operand))
+                            throw new ArgumentException($"Text of program {AssemblyName} on line {lineNum} could not be parsed properly!\nExpecting last two characters of text that can be parsed to {typeof(int)}");
+
+                        Int16 instruction = (Int16)((OpCode << 11) | operand);
+                        byte[] bytes = BitConverter.GetBytes(instruction);
+                        assembly.Words.Add(bytes[0]);
+                        assembly.Words.Add(bytes[1]);
+                    }
+                    else
+                    {
+                        if (!Int16.TryParse(line[0][1..], out Int16 word))
+                            throw new System.ArgumentException($"Text of program file ({AssemblyName}) on line {lineNum} could not be parsed properly!\nExpecting text that can be parsed to {typeof(Int16)}");
+
+                        byte[] bytes = BitConverter.GetBytes(word);
+
+                        assembly.Words.Add(bytes[0]);
+                        assembly.Words.Add(bytes[1]);
+                    }
                 }
             }
 
@@ -149,20 +253,20 @@ namespace UVSim
     }
 
     /// <summary>
-    /// Implements the <seealso cref="AssembliesManagementFixedSize_Interface{FixedLengthAssembly, WordType}"/> interface (abstract generic class)
+    /// Implements the <seealso cref="AssembliesManagementFixedSize_Interface"/> interface (abstract generic class)
     /// to fullfil the simulator requirnments of the UVSim BasicML Instruction set
     /// </summary>
-    public class BasicMLAssemblyManager : AssembliesManagementFixedSize_Interface<BasicMLAssembly, Int16>
+    public class BasicMLAssemblyManager : AssembliesManagementFixedSize_Interface
     {
         /// <summary>
         /// Construct and initialize this manager
         /// </summary>
-        public BasicMLAssemblyManager() : base(100) { }
+        public BasicMLAssemblyManager(BasicMLInstructionSet basicML) : base(100, basicML) { }
 
         ///<inheritdoc/>
         public override bool TryCreateAssembly(string assemblyName)
         {
-            LoadedAssemblies.Add(new(assemblyName));
+            LoadedAssemblies.Add(new BasicMLAssembly(assemblyName, _instructionSet));
 
             return true;
         }
@@ -170,15 +274,15 @@ namespace UVSim
         ///<inheritdoc/>
         public override bool TryCreateAssembly(string assemblyName, string[] programText)
         {
-            LoadedAssemblies.Add(new(assemblyName, programText));
+            LoadedAssemblies.Add(new BasicMLAssembly(assemblyName, programText, _instructionSet));
 
             return true;
         }
 
         ///<inheritdoc/>
-        public override bool TryCreateAssembly(string assemblyName, Collection<Int16> words)
+        public override bool TryCreateAssembly(string assemblyName, Collection<byte> words)
         {
-            LoadedAssemblies.Add(new(assemblyName, words));
+            LoadedAssemblies.Add(new BasicMLAssembly(assemblyName, words, _instructionSet));
 
             return true;
         }

@@ -103,11 +103,11 @@ namespace UVSim
         #endregion
     }
 
+    /**** Switching to using abstract class as interface alone ****
     /// <summary>
     /// Interface that defines the unified functionality expected of every human readable syntactic programing language used in the application
     /// </summary>
-    public interface IProgram<WordType>
-        where WordType : IBinaryInteger<WordType>, new()
+    public interface IProgram
     {
         #region PROPERTIES
         /// <summary>
@@ -198,17 +198,16 @@ namespace UVSim
         public Task<bool> DeserializeProgram(FileInfo info);
         #endregion
     }
+    */
 
     /// <summary>
-    /// Implements the <seealso cref="IProgram{WordType}"/> interface and defines an abstract class that concrete types will derive from to define program types digestable by the application
+    /// Defines an abstract class that concrete types will derive from to define program types digestable by the application
     /// </summary>
-    /// <typeparam name="WordType">The size of the words used by the system. Used only for setting type details to a reference held to an <seealso cref="Assembly{WordType}"/> object</typeparam>
-    public abstract partial class Program<WordType> : ObservableObject, IProgram<WordType>
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract partial class Program : ObservableObject
     {
         #region FIELDS
         /// <summary>
-        /// Attribute representing whether or not the <seealso cref="Program{WordType}"/> has been changed since the last serialization
+        /// Attribute representing whether or not the <seealso cref="Program"/> has been changed since the last serialization
         /// </summary>
         [ObservableProperty]
         protected bool _needsSave = true;
@@ -222,10 +221,10 @@ namespace UVSim
         /// </summary>
         protected SerializationInfo _serializationInfo;
         /// <summary>
-        /// The <seealso cref="Assembly{WordType}"/> this <seealso cref="Program{WordType}"/> is associated with
+        /// The <seealso cref="UVSim.Assembly"/> this <seealso cref="Program"/> is associated with
         /// </summary>
         [ObservableProperty]
-        protected IAssembly<WordType>? _assembly;
+        protected UVSim.Assembly? _assembly;
         #endregion
 
         #region PROPERTIES
@@ -377,7 +376,7 @@ namespace UVSim
 
         #region CONSTRUCTORS
         /// <summary>
-        /// Initialize the <seealso cref="Program{WordType}"/> with a file name and an extension given to this type of program
+        /// Initialize the <seealso cref="Program"/> with a file name and an extension given to this type of program
         /// </summary>
         /// <param name="fileName">Name of the file</param>
         /// <param name="ext">Extension used for this Program's language file type</param>
@@ -387,7 +386,7 @@ namespace UVSim
 
         #region PUBLIC_METHODS
         /// <summary>
-        /// Default implementation for the <seealso cref="IProgram{WordType}"/> interface's TryAddLine signature. Adds a line of text to the program
+        /// Default implementation for the <seealso cref="Program"/> interface's TryAddLine signature. Adds a line of text to the program
         /// </summary>
         /// <param name="text">Text to add to program's <seealso cref="LineData"/> collection</param>
         /// <returns>True if the operation is successfull, false otherwise</returns>
@@ -408,7 +407,7 @@ namespace UVSim
             return false;
         }
         /// <summary>
-        /// Default implementation for the <seealso cref="IProgram{WordType}"/> interface's RemoveLine signature. Removes a <seealso cref="LineData"/> object from the collection
+        /// Default implementation for the <seealso cref="Program"/> interface's RemoveLine signature. Removes a <seealso cref="LineData"/> object from the collection
         /// </summary>
         /// <param name="index">The 0 based index to try and remove the <seealso cref="LineData"/> from</param>
         /// <exeption cref="ArgumentOutOfRangeException">Thrown if the index entered is out of bounds for the collection</exeption>
@@ -431,7 +430,7 @@ namespace UVSim
                 Assembly.UpToDate = false;
         }
         /// <summary>
-        /// Default imlementation for the <seealso cref="IProgram{WordType}"/> interface's SetLine signature. Changes the text at a specified line
+        /// Default imlementation for the <seealso cref="Program"/> interface's SetLine signature. Changes the text at a specified line
         /// </summary>
         /// <param name="index">The 0 based index of the <seealso cref="LineData"/> whose text is to be changed</param>
         /// <param name="newText">The text to replace the specified lines text with</param>
@@ -454,7 +453,7 @@ namespace UVSim
                 Assembly.UpToDate = false;
         }
         /// <summary>
-        /// Default implementation for the <seealso cref="IProgram{WordType}"/> interface's TrySetContent signature. Sets the lines of the program's text
+        /// Default implementation for the <seealso cref="Program"/> interface's TrySetContent signature. Sets the lines of the program's text
         /// </summary>
         /// <param name="newLines">Array of new lines of text</param>
         /// <returns>True if operation suceeds, false otherwise</returns>
@@ -490,7 +489,7 @@ namespace UVSim
             return true;
         }
         /// <summary>
-        /// Default implementation for the <seealso cref="IProgram{WordType}"/> interface's TrySetContent signature. Sets the lines of the program's text
+        /// Default implementation for the <seealso cref="Program"/> interface's TrySetContent signature. Sets the lines of the program's text
         /// </summary>
         /// <param name="newText">Program's text</param>
         /// <returns>True if operation suceeds, false otherwise</returns>
@@ -502,7 +501,7 @@ namespace UVSim
 
         #region SERIEALIZATION
         /// <summary>
-        /// Default implementation for the <seealso cref="IProgram{WordType}"/> interface's SerializeProgram signature. Serializes the program to disk
+        /// Default implementation for the <seealso cref="Program"/> interface's SerializeProgram signature. Serializes the program to disk
         /// </summary>
         /// <returns>True if operation succeeded, false otherwise</returns>
         /// <exception cref="InvalidOperationException">Thrown if the <seealso cref="System.IO.FileInfo"/> for this program is null</exception>
@@ -527,7 +526,7 @@ namespace UVSim
             return true;
         }
         /// <summary>
-        /// Default implementation of the <seealso cref="IProgram{WordType}"/> interface's DeserializeProgram signature. Deserializes a program from disk
+        /// Default implementation of the <seealso cref="Program"/> interface's DeserializeProgram signature. Deserializes a program from disk
         /// </summary>
         /// <param name="info"><seealso cref="System.IO.FileInfo"/> object pointing to the program on disk</param>
         /// <returns>True if operation succeeded, false otherwise</returns>
@@ -565,13 +564,9 @@ namespace UVSim
     /// <summary>
     /// This abstract class serves as the interface used to create any concrete class whos purpose
     /// is to manage the creation, storage, serialization and valadation of any generic set of instructions known as a program for
-    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface{WordType}"/>
+    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface"/>
     /// </summary>
-    /// <typeparam name="Program">Type that implements the <seealso cref="IProgram{WordType}"/> interface. Recommended that type derives from <seealso cref="UVSim.Program{WordType}"/> for ease of use</typeparam>
-    /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
-    public abstract partial class ProgramsManagement_Interface<Program, WordType> : ObservableObject
-        where WordType : IBinaryInteger<WordType>, new()
-        where Program : IProgram<WordType>
+    public abstract partial class ProgramsManagement_Interface : ObservableObject
     {
         #region FIELDS
         /**** Made obsolete by addition of ObservableCollection in properties
@@ -585,7 +580,7 @@ namespace UVSim
 
         #region PROPERTIES
         /// <summary>
-        /// Collection of objects implementing the <seealso cref="IProgram{WordType}"/> interface
+        /// Collection of objects implementing the <seealso cref="Program"/> interface
         /// </summary>
         public ObservableCollection<Program> Programs { get; } = new();
 
@@ -629,21 +624,11 @@ namespace UVSim
 
         #region PUBLIC_METHODS
         /// <summary>
-        /// Attempts to create a new instace of the <typeparamref name="Program"/> type specified for the manager and add it to the manager's dictionary of programs
+        /// Attempts to create a new instace of <seealso cref="Program"/> specified for the manager and add it to the manager's dictionary of programs
         /// </summary>
         /// <param name="programName">A name to be given to this new program</param>
         /// <returns>True if the operation succeeds, false otherwise</returns>
-        public virtual bool TryCreateNewProgram(string programName)
-        {
-            if (Activator.CreateInstance(typeof(Program), new { programName }) is Program newProgram)
-            {
-                Programs.Add(newProgram);
-
-                return true;
-            }
-            else
-                return false;
-        }
+        public abstract bool TryCreateNewProgram(string programName);
 
         /// <summary>
         /// Delete a program from the collection at the specified index

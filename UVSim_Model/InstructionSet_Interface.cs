@@ -95,6 +95,9 @@ namespace UVSim
             (_programCounterIndex, _genPurposeRegisters, _cpsrIndex, _linkRegisterIndex, _stackPointerIndex) = (pc, gpr, cpsr, lr, sp);
     }
 
+
+
+    /**** Interface perviosuely used. Use abstract class instead ****
     /// <summary>
     /// Interface to facilitate substitution for <seealso cref="InstructionSet_Interface{WordType}"/>
     /// </summary>
@@ -125,20 +128,24 @@ namespace UVSim
         /// </summary>
         public int? StackPointerIndex { get; }
     }
+    */
 
     /// <summary>
-    /// Abstract class that serves as the interface for defining an instruction set to be used by an <seealso cref="ArchitectureSim_Interface{WordType}"/>
+    /// Abstract class that serves as the interface for defining an instruction set to be used by an <seealso cref="ArchitectureSim_Interface"/>
     /// </summary>
-    /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
     //[Serializable]
-    public abstract class InstructionSet_Interface<WordType> : IInstructionSet
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract class InstructionSet_Interface
     {
         #region FIELDS
         /// <remarks>
         /// Stores a set of key vallues that are OP codes(Keys) and delegates(values) to impementations that handle those operations
         /// </remarks>
         protected readonly Dictionary<int, OP>? _instructionSet;
+
+        /// <summary>
+        /// Stores the string mnemonics that pair with the OpCodes defined in the instructionSet Dictionary
+        /// </summary>
+        protected readonly Dictionary<string, int>? _mnemonics;
 
         /// <summary>
         /// The registers definition for this instruction set. See also <seealso cref="RegionInfo"/>
@@ -176,7 +183,12 @@ namespace UVSim
         /// <remarks>
         /// Used to initialize the <see cref="_instructionSet"/> field
         /// </remarks>
-        protected Dictionary<int, OP> InstructionSet { init => _instructionSet = value; }
+        protected Dictionary<int, OP>? InstructionSet { init => _instructionSet = value; }
+
+        /// <summary>
+        /// The Mnemonics standardized for this instruction set's assembly programs
+        /// </summary>
+        public Dictionary<string, int>? Mnemonics { get => _mnemonics; init => _mnemonics = value; }
 
         /// <summary>
         /// Can index into the object with the [] operator to see if the instruction set contains a certain OP code
@@ -190,10 +202,31 @@ namespace UVSim
             get
             {
                 if (_instructionSet == null)
-                    throw new System.InvalidOperationException("Instruction set has not been initialized. Can't query its Dictionary.");
+                    throw new System.InvalidOperationException("Instruction set has not been initialized. Can't query its Dictionary");
 
                 if (!_instructionSet.TryGetValue(key, out OP? value))
                     throw new System.ArgumentException($"The Instruction Set doesn't contain the entered OP code {key}");
+
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// Get the OpCode associated with a certain Mnemonic
+        /// </summary>
+        /// <param name="key">Mnemonic to convert to OpCode</param>
+        /// <returns>The OpCode associated with the entered Mnemonic key</returns>
+        /// <exception cref="System.InvalidOperationException">Thrown if the operator is called before the Mnemonics set is initialized</exception>
+        /// <exception cref="System.ArgumentException">Thrown if the entered Mnemonic key is not in the set</exception>
+        public virtual int this[string key]
+        {
+            get 
+            {
+                if (_mnemonics == null)
+                    throw new System.InvalidOperationException("Mnemonics set has not been initialized. Can't query its Dictionary");
+
+                if (!_mnemonics.TryGetValue(key, out int value))
+                    throw new System.ArgumentException($"There is no such mnemonic in the standard ({key})");
 
                 return value;
             }
@@ -205,18 +238,44 @@ namespace UVSim
         /// Can index into the object with this method to see if the instruction set contains a certain OP code
         /// </summary>
         /// <param name="opCode"> the opCode to query for</param>
-        /// <returns></returns>
+        /// <param name="Op">The OP delegate that OpCode is associated with, if there is one</param>
+        /// <returns>True if the entered OpCode is found, false otherwise</returns>
         /// <exception cref="System.InvalidOperationException"></exception>
         /// <exception cref="System.ArgumentException"></exception>
-        public virtual OP QueryOP(int opCode)
+        public virtual bool TryQueryOP(int opCode, out OP? Op)
         {
+            Op = null;
+
             if (_instructionSet == null)
-                throw new System.InvalidOperationException("Instruction set has not been initialized. Can't query its Dictionary.");
+                return false;
 
             if (!_instructionSet.TryGetValue(opCode, out OP? value))
-                throw new System.ArgumentException("The Instruction Set doesn't contain the entered OP code");
+                return false;
 
-            return value;
+            Op = value;
+            return true;
+        }
+
+        /// <summary>
+        /// Get the OpCode associated with a certain Mnemonic
+        /// </summary>
+        /// <param name="mnemonic">Mnemonic to convert to OpCode</param>
+        /// <param name="OpCode">The OpCode associated with the entered Mnemonic key if there is one</param>
+        /// <returns>True if the entered mnemonic is found, false otherwise</returns>
+        /// <exception cref="System.InvalidOperationException">Thrown if the operator is called before the Mnemonics set is initialized</exception>
+        /// <exception cref="System.ArgumentException">Thrown if the entered Mnemonic key is not in the set</exception>
+        public virtual bool TryQueryMnemonic(string mnemonic, out int OpCode)
+        {
+            OpCode = -1;
+
+            if (_mnemonics == null)
+                return false;
+
+            if (!_mnemonics.TryGetValue(mnemonic, out int value))
+                return false;
+
+            OpCode = value;
+            return true;
         }
         #endregion
 
@@ -224,30 +283,12 @@ namespace UVSim
         /// <summary>
         /// Create and initialize the instruction set. Called by type deriving from this
         /// </summary>
-        /// <param name="PCIndex">The index of the program counter register</param>
-        /// <param name="GeneralPurposeRegisters">The range of indexes that are general purpose registers</param>
-        /// <param name="CPSRIndex">The index of the current program status register</param>
-        /// <param name="LinkRegisterIndex">The index of the link register if one is supported. Default is null, unsupported</param>
-        /// <param name="StackPointerIndex">The index of the stack pointer register if one is supported. Default is null, unsupported</param>
-        protected InstructionSet_Interface(int PCIndex, IndexRange GeneralPurposeRegisters, int CPSRIndex,
-            int? LinkRegisterIndex = null, int? StackPointerIndex = null) =>
-            (this._registers) = 
-            (new Registers(PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex));
-
-        /// <summary>
-        /// Create and initialize the instruction set. Called by type deriving from this
-        /// </summary>
         /// <param name="instructionSet">A dictionary defining the instruction sets OpCodes and implementation</param>
-        /// <param name="PCIndex">The index of the program counter register</param>
-        /// <param name="GeneralPurposeRegisters">The range of indexes that are general purpose registers</param>
-        /// <param name="CPSRIndex">The index of the current program status register</param>
-        /// <param name="LinkRegisterIndex">The index of the link register if one is supported. Default is null, unsupported</param>
-        /// <param name="StackPointerIndex">The index of the stack pointer register if one is supported. Default is null, unsupported</param>
-        protected InstructionSet_Interface(Dictionary<int, OP> instructionSet,
-            int PCIndex, IndexRange GeneralPurposeRegisters, int CPSRIndex,
-            int? LinkRegisterIndex = null, int? StackPointerIndex = null) =>
-            (this._instructionSet, this._registers) =
-            (instructionSet, new Registers(PCIndex, GeneralPurposeRegisters, CPSRIndex, LinkRegisterIndex, StackPointerIndex));
+        /// <param name="registerDefinition">A <seealso cref="Registers"/> object defining the registers and their responsabuility in this system</param>
+        /// <param name="mnemonics">Optional Mnemonics definitions for associating a string mnemonic with an OpCode in the instructionSet Dictionary</param>
+        protected InstructionSet_Interface(Registers registerDefinition, Dictionary<int, OP>? instructionSet = null, Dictionary<string, int>? mnemonics = null) =>
+            (this._instructionSet, this._registers, this._mnemonics) =
+            (instructionSet, registerDefinition, mnemonics);
         #endregion
 
         #region OPS
@@ -256,8 +297,8 @@ namespace UVSim
         /// </summary>
         /// <param name="memory">Referance to the systems memory</param>
         /// <param name="registers">Referance to te systems registers</param>
-        /// <param name="instruction">Referance to the instruction word to be operated on</param>
-        public delegate void OP(ObservableCollection<WordType> memory, ObservableCollection<WordType> registers, ref WordType instruction);
+        /// <param name="instruction">The bytes of the instruction being operated on, the operands will be extracted from the instruction</param>
+        public delegate void OP(ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction);
         #endregion
     }
 }

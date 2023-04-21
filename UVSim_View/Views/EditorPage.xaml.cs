@@ -5,9 +5,11 @@ namespace UVSim_View
 {
     public partial class EditorPage : ContentPage
     {
-        public EditorPage()
+        public EditorPage(MasterViewModel viewModel)
         {
             InitializeComponent();
+
+            BindingContext = viewModel;
         }
 
         private void DockOptionsButton_Tapped(object sender, EventArgs e)

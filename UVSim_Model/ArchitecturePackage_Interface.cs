@@ -10,44 +10,41 @@ using System.Threading.Tasks;
 namespace UVSim
 {
     /// <summary>
-    /// This abstract class acts as the interface for concrete implementations that wrap the necessary components of the UVSim Model creating a package of items that are needed to run an architecture simulation in this application
+    /// This abstract class acts as the interface and default implementation for concrete types that wrap the necessary components of the UVSim Model creating a package of items that are needed to run an architecture simulation in this application
     /// </summary>
-    public abstract partial class ArchitecturePackage_Interface<WordType, Assembly, Program> : ObservableObject
-        where WordType : IBinaryInteger<WordType>, new()
-        where Assembly : IAssembly<WordType>
-        where Program : IProgram<WordType>
+    public abstract partial class ArchitecturePackage_Interface : ObservableObject
     {
         #region FIELDS
         /// <summary>
-        /// A reference to an <seealso cref="ArchitectureSim_Interface{WordType}"/> concrete implementation
+        /// A reference to an <seealso cref="ArchitectureSim_Interface"/> concrete implementation
         /// </summary>
         [ObservableProperty]
-        protected ArchitectureSim_Interface<WordType> _architectureSim;
+        protected ArchitectureSim_Interface _architectureSim;
 
         /// <summary>
-        /// A reference to an <seealso cref="AssembliesManagement_Interface{Assembly, WordType}"/> concrete implementation
+        /// A reference to an <seealso cref="AssembliesManagement_Interface"/> concrete implementation
         /// </summary>
         [ObservableProperty]
-        protected AssembliesManagement_Interface<Assembly, WordType> _assemblyManager;
+        protected AssembliesManagement_Interface _assemblyManager;
 
         /// <summary>
-        /// A refernece to a <seealso cref="ProgramsManagement_Interface{Program, WordType}"/> concrete implementation
+        /// A refernece to a <seealso cref="ProgramsManagement_Interface"/> concrete implementation
         /// </summary>
         [ObservableProperty]
-        protected ProgramsManagement_Interface<Program, WordType> _programsManager;
+        protected ProgramsManagement_Interface _programsManager;
         #endregion
 
         #region CONSTRUCTORS
         /// <summary>
         /// Construct and initialize the package by assigning concrete implementations to the packages fields
         /// </summary>
-        /// <param name="architectureSim">The concrete <seealso cref="ArchitectureSim_Interface{WordType}"/> to use in the package</param>
-        /// <param name="assemblyManager">The concrete <seealso cref="AssembliesManagement_Interface{Assembly, WordType}"/> to use in the package</param>
-        /// <param name="programManager">the concrete <seealso cref="ProgramsManagement_Interface{Program, WordType}"/> to use in the package</param>
-        public ArchitecturePackage_Interface(ArchitectureSim_Interface<WordType> architectureSim,
-            AssembliesManagement_Interface<Assembly, WordType> assemblyManager,
-            ProgramsManagement_Interface<Program, WordType> programManager) =>
-            (_architectureSim, _assemblyManager, _programsManager) = (architectureSim, assemblyManager, programManager);
+        /// <param name="architectureSim">The concrete <seealso cref="ArchitectureSim_Interface"/> to use in the package</param>
+        /// <param name="assemblyManager">The concrete <seealso cref="AssembliesManagement_Interface"/> to use in the package</param>
+        /// <param name="programManager">the concrete <seealso cref="ProgramsManagement_Interface"/> to use in the package</param>
+        public ArchitecturePackage_Interface(ArchitectureSim_Interface architectureSim,
+            ProgramsManagement_Interface programManager,
+            AssembliesManagement_Interface assemblyManager) =>
+            (_architectureSim, _programsManager, _assemblyManager) = (architectureSim, programManager, assemblyManager);
         #endregion
 
         #region PROPERTIES

@@ -5,7 +5,11 @@
              xmlns:views="clr-namespace:UVSim_View"
              x:Class="UVSim_View.EditorPage"
              
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             
+             xmlns:viewmodel="clr-namespace:UVSim.ViewModel;assembly=UVSim_ViewModel"
+             
+             x:DataType="viewmodel:MasterViewModel">
 
     <ContentPage.MenuBarItems>
         <MenuBarItem Text="File">
@@ -219,9 +223,42 @@
                         
                         MinimumHeightRequest="30"/>
 
-                    <CollectionView>
+                    <ListView
+                        Grid.Column="1"
+                                    
+                        ItemsSource="{Binding ProgramsManagementViewModel.Programs}"
+                                    
+                        HorizontalOptions="End"
+                                    
+                        SelectionMode="None"
+                                    
+                        VerticalScrollBarVisibility="Never"
+                        HorizontalScrollBarVisibility="Never">
 
-                    </CollectionView>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+
+                                    <Frame
+                                        BorderColor="green"
+                                        BackgroundColor="{StaticResource Gray500}"
+                                        Padding="3"
+                                        Margin="5"
+                                
+                                        MinimumWidthRequest="50"
+                                        MaximumWidthRequest="70"
+                                
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center">
+
+                                        <Label
+                                            Text="{Binding ., StringFormat='{}{0:D5}'}"
+                                            HorizontalOptions="Center"/>
+                                    </Frame>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </VerticalStackLayout>
             </Frame>
 

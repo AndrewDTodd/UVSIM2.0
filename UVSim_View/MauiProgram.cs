@@ -34,7 +34,7 @@ namespace UVSim_View
 
         public static MauiAppBuilder RegisterModelElements(this MauiAppBuilder builder)
         {
-            builder.Services.AddSingleton<ArchitectureSim_Interface<Int16>, BasicMLSim>();
+            builder.Services.AddSingleton<BasicMLPackage>();
 
             return builder;
         }
@@ -42,6 +42,9 @@ namespace UVSim_View
         public static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
         {
             builder.Services.AddSingleton<ArchitectureSimViewModel>();
+            builder.Services.AddSingleton<AssembliesManagementViewModel>();
+            builder.Services.AddSingleton<ProgramsManagementViewModel>();
+            builder.Services.AddSingleton<MasterViewModel>();
 
             return builder;
         }

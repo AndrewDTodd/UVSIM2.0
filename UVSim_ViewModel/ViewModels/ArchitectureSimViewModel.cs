@@ -15,11 +15,7 @@ namespace UVSim.ViewModel
     public partial class ArchitectureSimViewModel : BaseViewModel
     {
         #region FIELDS
-        //[ObservableProperty]
-        private readonly ArchitectureSim_Interface<Int16> _architectureSim;
-
-        /*[ObservableProperty]
-        private IInstructionSet _instructionSet;*/
+        private readonly BasicMLPackage _simPackage;
         #endregion
 
         #region PROPERTIES
@@ -29,15 +25,13 @@ namespace UVSim.ViewModel
 
         public List<string> RegisterDescriptors { get; } = new();
 
-        public ArchitectureSim_Interface<Int16> ArchitectureSim { get => _architectureSim; }
+        public ArchitectureSim_Interface<Int16> ArchitectureSim { get => _simPackage.ArchitectureSim; }
         #endregion
 
         #region CONSTRUCTORS
-        public ArchitectureSimViewModel(ArchitectureSim_Interface<Int16> architectureSim)
+        public ArchitectureSimViewModel(BasicMLPackage package)
         {
-            _architectureSim = architectureSim;
-
-            //_instructionSet = instructionSet;
+            _simPackage = package;
 
             Initialize();
         }

@@ -24,10 +24,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="ViewModels\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\UVSim_Model\UVSim_Model.csproj" />
 	</ItemGroup>
 

@@ -32,6 +32,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace UVSim
 {
+    /**** Use abstract class instead ****
     ///<summary>Interface that defines the common functionality expected of all Assemblies used by the application that have a fixed size constraint</summary>
     public interface IAssemblyFixedLength<WordType> : IAssembly<WordType>
         where WordType : IBinaryInteger<WordType>, new()
@@ -41,11 +42,10 @@ namespace UVSim
         /// </summary>
         public abstract int WordsCount { get; init; }
     }
+    */
     /// <remarks>*** Used for assemblies that have a fixed size constraint</remarks>
-    /// <typeparam name="WordType">The type of words used by the system</typeparam>
     /// <inheritdoc/>
-    public abstract partial class Assembly_FixedSize<WordType> : UVSim.Assembly<WordType>, IAssemblyFixedLength<WordType>
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract partial class Assembly_FixedSize : UVSim.Assembly
     {
         /* These are now inherited directly from Assembly
         #region FIELDS
@@ -91,7 +91,10 @@ namespace UVSim
         /// <param name="assemblyName">The name of the assemly's file</param>
         /// <param name="assemblyExtension">The extension given to this assemly types files</param>
         /// <param name="assemblyCapacity">The maximum number of words supported by this assembly type</param>
-        public Assembly_FixedSize(string assemblyName, string assemblyExtension, int assemblyCapacity) : base(assemblyName, assemblyExtension) =>
+        /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public Assembly_FixedSize(string assemblyName, string assemblyExtension, int assemblyCapacity, int bytesPerWord, InstructionSet_Interface instructionSet) : 
+            base(assemblyName, assemblyExtension, bytesPerWord, instructionSet) =>
             (WordsCount) = (assemblyCapacity);
 
         /// <summary>
@@ -101,7 +104,10 @@ namespace UVSim
         /// <param name="assemblyExtension">The extension given to this assemly types files</param>
         /// <param name="programText">Array of strings representing the program to be assembled</param>
         /// <param name="assemblyCapacity">The maximum number of words supported by this assembly type</param>
-        public Assembly_FixedSize(string assemblyName, string assemblyExtension, string[] programText, int assemblyCapacity) : base(assemblyName, assemblyExtension, programText) =>
+        /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public Assembly_FixedSize(string assemblyName, string assemblyExtension, string[] programText, int assemblyCapacity, int bytesPerWord, InstructionSet_Interface instructionSet) : 
+            base(assemblyName, assemblyExtension, programText, bytesPerWord, instructionSet) =>
             (WordsCount) = (assemblyCapacity);
 
         /// <summary>
@@ -109,9 +115,12 @@ namespace UVSim
         /// </summary>
         /// <param name="assemblyName">The name of the assembly's file</param>
         /// <param name="assemblyExtension">The extension given to this assembly types files</param>
-        /// <param name="words">A collection of <typeparamref name="WordType"/> to copy from another assembly</param>
+        /// <param name="words">A collection of bytes to copy from another assembly</param>
         /// <param name="assemblyCapacity">The maximum number of words supported by this assembly type</param>
-        public Assembly_FixedSize(string assemblyName, string assemblyExtension, Collection<WordType> words, int assemblyCapacity) : base(assemblyName, assemblyExtension, words) =>
+        /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public Assembly_FixedSize(string assemblyName, string assemblyExtension, Collection<byte> words, int assemblyCapacity, int bytesPerWord, InstructionSet_Interface instructionSet) : 
+            base(assemblyName, assemblyExtension, words, bytesPerWord, instructionSet) =>
             (WordsCount) = (assemblyCapacity);
         #endregion
     }
@@ -119,32 +128,33 @@ namespace UVSim
     /// <summary>
     /// This abstract class serves as the interface used to create any concrete class whos purpose
     /// is to manage the creation, storage, serialization and valadation of any generic set of instructions known as a program for
-    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface{WordType}"/>
+    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface"/>
     /// </summary>
     /// <remarks>
     /// ***Supports programs of a fixed maximum length!!!*** Programs can not exede the maximum size specified at initialization
     /// </remarks>
-    /// <typeparamref name="FixedLengthAssembly"/> A collection that implements the <seealso cref="IList{T}"/> interface but does not allow for parameterless construction
-    /// <typeparamref name="WordType"/> An intager type that specifies the word size used in the architecture
-    public abstract class AssembliesManagementFixedSize_Interface<FixedLengthAssembly, WordType> : AssembliesManagement_Interface<FixedLengthAssembly, WordType>
-        where FixedLengthAssembly : IAssemblyFixedLength<WordType>
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract class AssembliesManagementFixedSize_Interface : AssembliesManagement_Interface
     {
         #region PROPERTIES
         /// <summary>
-        /// Returns the max size of an assembly in bytes, null if the architecture provides no limitation
+        /// Returns the max size of an assembly in bytes
         /// </summary>
         protected int AssemblySize {get; init;}
+
+        /// <summary>
+        /// The <seealso cref="Assembly_FixedSize"/>s in the manager's collection
+        /// </summary>
+        public new ObservableCollection<Assembly_FixedSize> LoadedAssemblies { get; } = new();
         #endregion
 
         #region OPERATORS
         /// <summary>
-        /// Retrieve a particular <seealso cref="Assembly_FixedSize{WordType}"/> at a given index
+        /// Retrieve a particular <seealso cref="Assembly_FixedSize"/> at a given index
         /// </summary>
-        /// <param name="index">The location (index) of the <seealso cref="Assembly_FixedSize{WordType}"/> to retrieve</param>
-        /// <returns>The retieved <seealso cref="Assembly_FixedSize{WordType}"/> if one was obtained</returns>
-        /// <exception cref="System.IndexOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
-        public new virtual FixedLengthAssembly this[int index]
+        /// <param name="index">The location (index) of the <seealso cref="Assembly_FixedSize"/> to retrieve</param>
+        /// <returns>The retieved <seealso cref="Assembly_FixedSize"/> if one was obtained</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
+        public new virtual Assembly_FixedSize this[int index]
         {
             get
             {
@@ -160,7 +170,8 @@ namespace UVSim
         /// <summary>
         /// Initialize the object
         /// </summary>
-        protected AssembliesManagementFixedSize_Interface(int assemblySize) =>
+        /// <param name="assemblySize">The maximum size of the assembly in bytes</param>
+        protected AssembliesManagementFixedSize_Interface(int assemblySize, InstructionSet_Interface instructionSet) : base(instructionSet) =>
             AssemblySize = assemblySize;
         #endregion
 
@@ -177,7 +188,7 @@ namespace UVSim
 
             int i = 0;
 
-            foreach(FixedLengthAssembly program in LoadedAssemblies)
+            foreach(Assembly_FixedSize program in LoadedAssemblies)
             {
                 output += $"\t{i}.) [";
 

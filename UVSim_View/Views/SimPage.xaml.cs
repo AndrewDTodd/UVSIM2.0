@@ -4,7 +4,7 @@ namespace UVSim_View
 {
     public partial class SimPage : ContentPage
     {
-        public SimPage(ArchitectureSimViewModel viewModel)
+        public SimPage(MasterViewModel viewModel)
         {
             InitializeComponent();
 

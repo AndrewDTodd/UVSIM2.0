@@ -19,107 +19,150 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 */
 
 using System.Collections.ObjectModel;
+using System.Net;
+using System.Reflection;
 
 namespace UVSim
 {
+    public class BasicMLInstructionSet : InstructionSet_Interface
+    {
+        #region ADDITIONAL_OPS
+
+        #endregion
+
+        #region CONSTRUCTORS
+        public BasicMLInstructionSet() : base(new Registers(1, new IndexRange(startIndex: 0, endIndex: 0), 2))
+        {
+            //Defines the OP codes and associated operations for the Basic ML Architecture used by programs on this system
+            InstructionSet = new Dictionary<int, OP>()
+            {
+                //Read OP in BasicML
+                [10] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    //This may need to be changed to have all IO happening at the driver, not in the logic of the program
+
+                    //Depreciated
+                    //Was used in version 1.0
+                    /*if (!Int16.TryParse(ConsoleUIManager.GetInput(), out memory[operand]))
+                        throw new System.ArgumentException();*/
+                }),
+                //Write OP in BasicML
+                [11] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    //This may need to be changed to have all IO happening at the driver, not in the logic of the program
+
+                    //Depreciated
+                    //Was used in version 1.0
+                    /*ConsoleUIManager.Print(memory[operand].ToString().PadLeft(4,'0'));*/
+                }),
+
+                //Load OP in BasicML
+                [20] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Array.Copy(memory[(int)operand], registers[GeneralPurposeRegistersIndexes.startIndex], 2);
+                }),
+                //Store OP in BasicML
+                [21] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Array.Copy(registers[this.GeneralPurposeRegistersIndexes.startIndex], memory[(int)operand], 2);
+                }),
+
+                //ADD OP in BasicML
+                [30] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Int16 left = BitConverter.ToInt16(registers[GeneralPurposeRegistersIndexes.startIndex], 0);
+                    Int16 right = BitConverter.ToInt16(memory[operand], 0);
+
+                    Array.Copy(BitConverter.GetBytes((Int16)(left + right)), registers[GeneralPurposeRegistersIndexes.startIndex], 2);
+                }),
+                //SUB OP in BasicML
+                [31] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Int16 left = BitConverter.ToInt16(registers[GeneralPurposeRegistersIndexes.startIndex], 0);
+                    Int16 right = BitConverter.ToInt16(memory[operand], 0);
+
+                    Array.Copy(BitConverter.GetBytes((Int16)(left - right)), registers[GeneralPurposeRegistersIndexes.startIndex], 2);
+                }),
+                //DIV OP in BasicML
+                [32] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Int16 left = BitConverter.ToInt16(registers[GeneralPurposeRegistersIndexes.startIndex], 0);
+                    Int16 right = BitConverter.ToInt16(memory[operand], 0);
+
+                    Array.Copy(BitConverter.GetBytes((Int16)(left / right)), registers[GeneralPurposeRegistersIndexes.startIndex], 2);
+                }),
+                //MUL OP in BasicML
+                [33] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Int16 left = BitConverter.ToInt16(registers[GeneralPurposeRegistersIndexes.startIndex], 0);
+                    Int16 right = BitConverter.ToInt16(memory[operand], 0);
+
+                    Array.Copy(BitConverter.GetBytes((Int16)(left * right)), registers[GeneralPurposeRegistersIndexes.startIndex], 2);
+                }),
+
+                //Branch OP in BasicML
+                [40] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Array.Copy(BitConverter.GetBytes(operand - 1), registers[ProgramCounterIndex], 2);
+                }),
+                //Branch if Neg OP in BasicML
+                [41] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Int16 rOne = BitConverter.ToInt16(registers[GeneralPurposeRegistersIndexes.startIndex], 0);
+
+                    if (rOne < 0)
+                        Array.Copy(BitConverter.GetBytes(operand - 1), registers[ProgramCounterIndex], 2);
+                }),
+                //Branch if Zero OP in BasicML
+                [42] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Int16 operand = (Int16)(BitConverter.ToInt16(instruction, 0) & 0x7FF);
+
+                    Int16 rOne = BitConverter.ToInt16(registers[GeneralPurposeRegistersIndexes.startIndex], 0);
+
+                    if (rOne == 0)
+                        Array.Copy(BitConverter.GetBytes(operand - 1), registers[ProgramCounterIndex], 2);
+                }),
+                //HLT (hault) OP in BasicML
+                [43] = new OP((ObservableCollection<byte[]> memory, ObservableCollection<byte[]> registers, byte[] instruction) =>
+                {
+                    Array.Copy(BitConverter.GetBytes((Int16)43), registers[CPSRIndex], 2);
+                })
+            };
+
+            Mnemonics = new Dictionary<string, int>()
+            {
+
+            };
+
+        }
+        #endregion
+    }
+
     /// <summary>
-    /// Implements the <seealso cref="ArchitectureSim_Interface{WordType}"/> interface (abstract class)
+    /// Implements the <seealso cref="ArchitectureSim_Interface"/> interface (abstract class)
     /// to fullfil the simulator requirnments of the UVSim BasicML Instruction set
     /// </summary>
     /// <inheritdoc/>
-    public class BasicMLSim : ArchitectureSim_Interface<Int16>
+    public class BasicMLSim : ArchitectureSim_Interface
     {
         #region INTERNAL_HELPER_CLASSES
-        private class BasicMLInstructionSet : InstructionSet_Interface<Int16>
-        {
-            #region ADDITIONAL_OPS
-            
-            #endregion
-
-            #region CONSTRUCTORS
-            public BasicMLInstructionSet() : base(1, new IndexRange(startIndex:0, endIndex:0), 2)
-            {
-                //Defines the OP codes and associated operations for the Basic ML Architecture used by programs on this system
-                InstructionSet = new Dictionary<int, OP>()
-                {
-                    //Read OP in BasicML
-                    [10] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) => 
-                    {
-                        //This may need to be changed to have all IO happening at the driver, not in the logic of the program
-                        
-                        //Depreciated
-                        //Was used in version 1.0
-                        /*if (!Int16.TryParse(ConsoleUIManager.GetInput(), out memory[operand]))
-                            throw new System.ArgumentException();*/
-                    }),
-                    //Write OP in BasicML
-                    [11] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) => 
-                    {
-                        //This may need to be changed to have all IO happening at the driver, not in the logic of the program
-
-                        //Depreciated
-                        //Was used in version 1.0
-                        /*ConsoleUIManager.Print(memory[operand].ToString().PadLeft(4,'0'));*/
-                    }),
-
-                    //Load OP in BasicML
-                    [20] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) => 
-                    {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = memory[(int)operand];
-                    }),
-                    //Store OP in BasicML
-                    [21] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        memory[(int)operand] = registers[this.GeneralPurposeRegistersIndexes.startIndex];
-                    }),
-
-                    //ADD OP in BasicML
-                    [30] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] + (int)memory[(int)operand]);
-                    }),
-                    //SUB OP in BasicML
-                    [31] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] - (int)memory[(int)operand]);
-                    }),
-                    //DIV OP in BasicML
-                    [32] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] / (int)memory[(int)operand]);
-                    }),
-                    //MUL OP in BasicML
-                    [33] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        registers[this.GeneralPurposeRegistersIndexes.startIndex] = (Int16)((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] * (int)memory[(int)operand]);
-                    }),
-
-                    //Branch OP in BasicML
-                    [40] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        registers[this.ProgramCounterIndex] = (Int16)((int)operand - 1);
-                    }),
-                    //Branch if Neg OP in BasicML
-                    [41] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        if ((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] < 0)
-                            registers[this.ProgramCounterIndex] = (Int16)((int)operand - 1);
-                    }),
-                    //Branch if Zero OP in BasicML
-                    [42] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        if ((int)registers[this.GeneralPurposeRegistersIndexes.startIndex] == 0)
-                            registers[this.ProgramCounterIndex] = (Int16)((int)operand - 1);
-                    }),
-                    //HLT (hault) OP in BasicML
-                    [43] = new OP((ObservableCollection<Int16> memory, ObservableCollection<Int16> registers, ref Int16 operand) =>
-                    {
-                        registers[this.CPSRIndex] = 43;
-                    })
-                };
-            }
-            #endregion
-        }
         #endregion
 
         #region FIELDS
@@ -130,9 +173,10 @@ namespace UVSim
         /// <summary>
         /// Calls the base class constructor with the register and memory specifications of the BasicML set
         /// </summary>
+        /// <param name="basicML">A reference to an instance of the <seealso cref="BasicMLInstructionSet"/> which will be used by this simulator to actually run the simulation</param>
         /// <param name="numOfregisters">Defines the number of registers to be used in the defined Architecture</param>
         /// <param name="memAddresses">Defines the number of addressable words in memory in the simulated system</param>
-        public BasicMLSim(byte numOfregisters = 3, byte memAddresses = 100) : base(numOfregisters, memAddresses, new BasicMLInstructionSet())
+        public BasicMLSim(BasicMLInstructionSet basicML, byte numOfregisters = 3, byte memAddresses = 100) : base(2, numOfregisters, memAddresses, basicML)
         {/*This space left intentionally blank ;)*/}
         #endregion
 
@@ -141,14 +185,14 @@ namespace UVSim
         /// Allows a caller to send a set of instructions (program) to the simulator to be loaded into memory.
         /// </summary>
         /// <param name="program">List of instructions and data with 16 bit words</param>
-        public override void LoadProgram(IList<Int16> program)
+        public override void LoadProgram(IList<byte> program)
         {
             //call abstract base class' virtual method that implements basic functionality required by all ArchitectureSims
             base.LoadProgram(program);
 
-            registers[0] = 0;
-            registers[1] = 0;
-            registers[2] = 0;
+            registers[0] = new byte[2];
+            registers[1] = new byte[2];
+            registers[2] = new byte[2];
         }
 
         /// <summary>
@@ -162,21 +206,22 @@ namespace UVSim
 
             do
             {
-                byte opCode = (byte)(memory[registers[this.InstructionSet.ProgramCounterIndex]] >> 8);
-                Int16 operand = (byte)(memory[registers[this.InstructionSet.ProgramCounterIndex]] & 0xFF);
+                Int16 programCounter = BitConverter.ToInt16(registers[InstructionSet.ProgramCounterIndex], 0);
+                Int16 opCode = (Int16)(BitConverter.ToInt16(memory[programCounter]) >> 11);
 
                 try
                 {
-                    InstructionSet_Interface<Int16>.OP instruction = _instructionSet[opCode];
+                    InstructionSet_Interface.OP instruction = _instructionSet[opCode];
 
-                    instruction.Invoke(memory, registers, ref operand);
+                    instruction.Invoke(memory, registers, memory[programCounter]);
                 }
                 finally
                 {
-                    registers[this.InstructionSet.ProgramCounterIndex]++;
+                    programCounter++;
+                    Array.Copy(BitConverter.GetBytes(programCounter), registers[InstructionSet.ProgramCounterIndex], 0);
                 }
                 
-            } while (registers[this.InstructionSet.CPSRIndex] != 43);
+            } while (BitConverter.ToInt16(registers[InstructionSet.CPSRIndex], 0) != 43);
         }
         #endregion
     }

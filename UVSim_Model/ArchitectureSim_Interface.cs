@@ -29,6 +29,7 @@ using Microsoft.Win32;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace UVSim
 {
@@ -69,20 +70,18 @@ namespace UVSim
     /// This abstract class serves as the interface used to create any concrete class whos purpose
     /// is to define and implement an Architecture for a machine language simulator.
     /// </summary>
-    /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
-    public abstract partial class ArchitectureSim_Interface<WordType> : ObservableObject
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract partial class ArchitectureSim_Interface : ObservableObject
     {
         #region FIELDS
         /// <summary>
         /// General purpose and control registers for the Architecture
         /// </summary>
-        protected ObservableCollection<WordType> registers;
+        protected ObservableCollection<byte[]> registers;
         
         /// <summary>
         /// The avalable system memory for the Architecture
         /// </summary>
-        protected ObservableCollection<WordType> memory;
+        protected ObservableCollection<byte[]> memory;
 
         /// <summary>
         /// Marks if a program is loaded into the simulator. 0 for false, 1 for true
@@ -95,41 +94,70 @@ namespace UVSim
         protected int _memorySize;
 
         /// <summary>
-        /// Defines the instruction set supported by this architecture simulator <seealso cref="InstructionSet_Interface{WordType}"/>
+        /// How many bytes are in an addressable word for this architecture, for instance in a 16bit architecture there are 2 bytes per word
         /// </summary>
-        protected readonly InstructionSet_Interface<WordType> _instructionSet;
+        protected readonly int _bytesPerWord;
+
+        /// <summary>
+        /// Defines the instruction set supported by this architecture simulator <seealso cref="InstructionSet_Interface"/>
+        /// </summary>
+        protected readonly InstructionSet_Interface _instructionSet;
         #endregion
 
         #region PROPERTIES
         /// <summary>
         /// Property accessor for the simulators registers
         /// </summary>
-        public ObservableCollection<WordType> Registers { get => registers; }
+        public ObservableCollection<byte[]> Registers { get => registers; }
         /// <summary>
         /// Property accessor for the simulators system memory
         /// </summary>
-        public ObservableCollection<WordType> Memory { get => memory; }
+        public ObservableCollection<byte[]> Memory { get => memory; }
         
         /// <summary>
         /// Property accessor for the architectures instruction set
         /// </summary>
-        public IInstructionSet InstructionSet { get => _instructionSet; }
+        public InstructionSet_Interface InstructionSet { get => _instructionSet; }
+
+        /// <summary>
+        /// Gets how many addressable words are in the systems memory
+        /// </summary>
+        public int MemorySize { get => _memorySize; }
+
+        /// <summary>
+        /// Gets the number of bytes that are in each addressable word in this architecture
+        /// </summary>
+        public int BytesPerWord { get => _bytesPerWord; }
         #endregion
 
         #region CONSTRUCTORS
         /// <summary>
         /// Constructor used by derived types to set up register and memory details in the simulator.
         /// </summary>
+        /// <param name="bytesPerWord">How many bytes are in each addressable word in this architecture, such as for a 16bit architecture the bytesPerWord would be 2. Value cannot be less than 1 or grater than 8</param>
         /// <param name="numOfRegisters">Defines the number of registers to be used in the defined Architecture</param>
         /// <param name="memAddresses">Defines the number of addressable words in memory in the simulated system</param>
-        /// <param name="instructionSet">The <seealso cref="InstructionSet_Interface{WordType}"/> opject that defines the instruction set supported by this architecture simulator</param>
-        protected ArchitectureSim_Interface(int numOfRegisters, int memAddresses, InstructionSet_Interface<WordType> instructionSet)
+        /// <param name="instructionSet">The <seealso cref="InstructionSet_Interface"/> opject that defines the instruction set supported by this architecture simulator</param>
+        protected ArchitectureSim_Interface(int bytesPerWord, int numOfRegisters, int memAddresses, InstructionSet_Interface instructionSet)
         {
-            registers = new(new WordType[numOfRegisters]);
+            if (bytesPerWord < 1 || bytesPerWord > 8)
+                throw new ArgumentException($"Bytes Per Word cannot be less than 1 or greater than 8. Entered value was {bytesPerWord}");
 
-            memory = new(new WordType[memAddresses]);
+            registers = new(new byte[numOfRegisters][]);
+            Parallel.For(0, numOfRegisters, (regAddress) =>
+            {
+                registers[regAddress] = new byte[bytesPerWord];
+            });
+
+            memory = new(new byte[memAddresses][]);
+            Parallel.For(0, memAddresses, (memAddress) =>
+            {
+                memory[memAddress] = new byte[bytesPerWord];
+            });
 
             _memorySize = memAddresses;
+            
+            _bytesPerWord = bytesPerWord;
 
             _instructionSet = instructionSet;
         }
@@ -137,26 +165,29 @@ namespace UVSim
 
         #region METHODS
         /// <summary>
-        /// Allows a caller to send a set of instructions (program) to the simulator to be loaded into memory.
+        /// Allows a caller to send a set of instructions (program) to the simulator to be loaded into memory. These are sent as a collection of bytes
         /// </summary>
         /// <remarks>
-        /// <para>Expects the program to contain words of a valid size as defined by <typeparamref name="WordType"/></para>
         /// <para>It is expected that the extending class will implement necessary set up with its registers as this class cannot have knowledge of the Architectures register design</para>
         /// </remarks>
         /// <param name="program"> (ref)erence to a collection containing the instructions that constitute the program</param>
         /// <exception cref="System.ArgumentNullException">Thrown is a null or empty program is passed in</exception>
         /// <exception cref="System.ArgumentException"></exception>
-        public virtual void LoadProgram(IList<WordType> program)
+        public virtual void LoadProgram(IList<byte> program)
         {
+            byte[] programCache = program.ToArray();
+
             if(program.Count == 0)
                 throw new System.ArgumentException("The program passed in is empty");
 
-            if (program.Count > _memorySize)
-                throw new System.ArgumentException($"The program is too big. This architecture only supports a memory of {_memorySize} addresses.");
+            if (program.Count > _memorySize * _bytesPerWord)
+                throw new System.ArgumentException($"The program is too big. This architecture only supports a memory of {_memorySize} addresses. This program would require {program.Count / _bytesPerWord} addresses");
 
-            for(int i = 0; i < program.Count; i++)
+
+            int memoryAddress = 0;
+            for(int programIndex = 0; programIndex < programCache.Length; programIndex += _bytesPerWord)
             {
-                memory[i] = program[i];
+                Array.Copy(programCache, programIndex, memory[memoryAddress], 0, _bytesPerWord);
             }
 
             Interlocked.Exchange(ref _programLoaded, 1);
@@ -186,7 +217,7 @@ namespace UVSim
 
             for(int i = 0; i < _memorySize; i++)
             {
-                output += $"R{i}[{registers[i]}], ";
+                output += $"R{i}[{BitConverter.ToInt64(registers[i])}], ";
             }
 
             output += "\nMemory:\n";
@@ -198,7 +229,7 @@ namespace UVSim
                 output += $"{r}\t";
                 for (int c = 0; c < 10; c++)
                 {
-                    string? addressContents = memory[(r * 10) + c].ToString()?.PadLeft(4, '0');
+                    string? addressContents = BitConverter.ToInt64(memory[(r * 10) + c]).ToString()?.PadLeft(4, '0');
 
                     addressContents ??= "****";
 

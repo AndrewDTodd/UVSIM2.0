@@ -37,6 +37,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace UVSim
 {
+    /**** Removing interfaces, use the abstract class instead ****
     /// <summary>
     /// Interface that defines the common functionality expected of all Assemblies used in the application
     /// </summary>
@@ -113,17 +114,16 @@ namespace UVSim
         /// <returns>True if operation succeeds, false otherwise</returns>
         public Task<bool> DeserializeAssembly(FileInfo info);
     }
+    */
 
     /// <summary>
     /// Default implementations used to simplify concrete implementations of Assembly types
     /// </summary>
-    /// <typeparam name="WordType">The kind of words used by the system</typeparam>
-    public abstract partial class Assembly<WordType> : ObservableObject, IAssembly<WordType>
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract partial class Assembly : ObservableObject
     {
         #region FIELDS
         /// <summary>
-        /// Marks if the assembly has been built to reflect changes in its associated <seealso cref="Program{WordType}"/>
+        /// Marks if the assembly has been built to reflect changes in its associated <seealso cref="Program"/>
         /// </summary>
         [ObservableProperty]
         protected bool _upToDate = true;
@@ -132,6 +132,16 @@ namespace UVSim
         /// Serialization info for saving assembly to disk
         /// </summary>
         protected SerializationInfo _serializationInfo;
+
+        /// <summary>
+        /// Bytes in each addressable word in this architecture. For example, this is 2 for a 16bit architecture
+        /// </summary>
+        protected int _bytesPerWord;
+
+        /// <summary>
+        /// The instruction set this assembly is built to run on
+        /// </summary>
+        protected InstructionSet_Interface _instructionSet;
         #endregion
 
         #region PROPERTIES
@@ -139,7 +149,7 @@ namespace UVSim
         /// <summary>
         /// Collection of words that constitute the collection of machine instructions, or in other words the assembly
         /// </summary>
-        public ObservableCollection<WordType> Words { get; init; } = new();
+        public ObservableCollection<byte> Words { get; private set; } = new();
 
         /// <summary>
         /// The number of words in the assembly
@@ -202,11 +212,11 @@ namespace UVSim
         /// <summary>
         /// Arguments for the changing event for the _serializationInfo.FileInfo property
         /// </summary>
-        private static readonly global::System.ComponentModel.PropertyChangingEventArgs AssemblyInfoChanging = new(nameof(Assembly<WordType>.FileInfo));
+        private static readonly global::System.ComponentModel.PropertyChangingEventArgs AssemblyInfoChanging = new(nameof(Assembly.FileInfo));
         /// <summary>
         /// Arguments for the changed event for the _serializationInfo.FileInfo property
         /// </summary>
-        private static readonly global::System.ComponentModel.PropertyChangedEventArgs AssemblyInfoChanged = new(nameof(Assembly<WordType>.FileInfo));
+        private static readonly global::System.ComponentModel.PropertyChangedEventArgs AssemblyInfoChanged = new(nameof(Assembly.FileInfo));
 
         /// <summary>
         /// Extension of the File type for this Programs language
@@ -220,8 +230,8 @@ namespace UVSim
         /// </summary>
         /// <param name="index">The location of the word to access</param>
         /// <returns>A reference to the word at the index if one exists</returns>
-        /// <exception cref="IndexOutOfRangeException">Thrown if the index entered is out of bounds for the Words collection</exception>
-        public abstract WordType this[int index] { get; }
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if the index entered is out of bounds for the Words collection</exception>
+        public abstract Int64 this[int index] { get; }
         #endregion
 
         #region CONSTRUCTORS
@@ -230,17 +240,25 @@ namespace UVSim
         /// </summary>
         /// <param name="assemblyName">The name of the assemly's file</param>
         /// <param name="assemblyExtension">The extension given to this assembly types files</param>
-        public Assembly(string assemblyName, string assemblyExtension) =>
-            _serializationInfo = new(assemblyName, assemblyExtension);
+        /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public Assembly(string assemblyName, string assemblyExtension, int bytesPerWord, InstructionSet_Interface instructionSet) =>
+            (_serializationInfo, _bytesPerWord, _instructionSet) = (new(assemblyName, assemblyExtension), bytesPerWord, instructionSet);
         /// <summary>
         /// Construct and initialize an assembly with its file name, the extension assigned to this assembly type, and build the assembly from a provided program text
         /// </summary>
         /// <param name="assemblyName">The name of the assemly's file</param>
         /// <param name="assemblyExtension">The extension given to this assembly types files</param>
         /// <param name="programText">Array of strings representing the lines of the program to be assembled</param>
-        public Assembly(string assemblyName, string assemblyExtension, string[] programText)
+        /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
+        /// /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public Assembly(string assemblyName, string assemblyExtension, string[] programText, int bytesPerWord, InstructionSet_Interface instructionSet)
         {
             _serializationInfo = new(assemblyName, assemblyExtension);
+
+            _bytesPerWord = bytesPerWord;
+
+            _instructionSet = instructionSet;
 
             this.AssembleProgram(assemblyName, programText);
         }
@@ -249,9 +267,11 @@ namespace UVSim
         /// </summary>
         /// <param name="assemblyName">The name of the assembly's file</param>
         /// <param name="assemblyExtension">The extension given to this assembly types files</param>
-        /// <param name="words">A collection of <typeparamref name="WordType"/> to copy from another assembly</param>
-        public Assembly(string assemblyName, string assemblyExtension, Collection<WordType> words) =>
-            (_serializationInfo, Words) = (new(assemblyName, assemblyExtension), new(words));
+        /// <param name="words">A collection of bytes to copy from another assembly</param>
+        /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
+        /// <param name="instructionSet">The instruction set this assembly is to build in</param>
+        public Assembly(string assemblyName, string assemblyExtension, Collection<byte> words, int bytesPerWord, InstructionSet_Interface instructionSet) =>
+            (_serializationInfo, Words, _bytesPerWord, _instructionSet) = (new(assemblyName, assemblyExtension), new(words), bytesPerWord, instructionSet);
         #endregion
 
         #region METHODS
@@ -271,10 +291,10 @@ namespace UVSim
         /// <remarks>Will not store the program in the program collection. Primarily for testing</remarks>
         /// <param name="assemblyName">The name of the assembly being created</param>
         /// <param name="programText">Array of strings representing the lines of the program to be assembled</param>
-        public abstract Assembly<WordType> ParseProgram(string assemblyName, string[] programText);
+        public abstract Assembly ParseProgram(string assemblyName, string[] programText);
 
         /// <summary>
-        /// Default implemenation for the <seealso cref="IAssembly{WordType}"/> interface's SerializeAssembly signature. Serializes the assembly to disk
+        /// Serializes the assembly to disk
         /// </summary>
         /// <returns>Returns true if the operation succeeds, false otherwise</returns>
         /// <exception cref="InvalidOperationException">Thown if the mothod is called when the assembly's FileInfo isn't set</exception>
@@ -285,26 +305,18 @@ namespace UVSim
 
             return await Task.Run<bool>(() =>
             {
-                WordType wordType = new();
-
-                byte[] wordBuffer = new byte[wordType.GetByteCount()];
-                List<byte> buffer = new(capacity: Words.Count * wordBuffer.Length);
-
-                foreach (WordType word in Words)
-                {
-                    word.WriteBigEndian(wordBuffer);
-                    buffer.AddRange(wordBuffer);
-                }
-
                 using BinaryWriter writer = new(FileInfo.Open(FileMode.Create));
-                writer.Write(buffer.ToArray());
+
+                writer.Write(Words.ToArray());
+
+                writer.Flush();
 
                 return true;
             });
         }
 
         /// <summary>
-        /// Default implementation for the <seealso cref="IAssembly{WordType}"/> interface's DeserializeAssembly signature. Deserializes the assembly from disk
+        /// Deserializes the assembly from disk
         /// </summary>
         /// <param name="info">Info about the saved assembly to deserialize from disk</param>
         /// <returns>True if operation succeeds, false otherwise</returns>
@@ -325,12 +337,7 @@ namespace UVSim
 
                 AssemblyName = FileInfo.Name;
 
-                WordType wordType = new();
-
-                for (int b = 0; b < bytes.Length; b += wordType.GetByteCount())
-                {
-                    Words[b] = WordType.ReadBigEndian(bytes, b, false);
-                }
+                Words = new(bytes);
 
                 return true;
             });
@@ -341,28 +348,28 @@ namespace UVSim
     /// <summary>
     /// This abstract class serves as the interface used to create any concrete class whos purpose
     /// is to manage the creation, storage, serialization and valadation of any generic set of instructions known as a program for
-    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface{WordType}"/>
+    /// an Architecture supported by a class derived from <seealso cref="ArchitectureSim_Interface"/>
     /// </summary>
     /// <remarks>
     /// Adds support for programs of a dynamic length with the use of generic containers as valid type paramaters
     /// </remarks>
-    /// <typeparam name="Assembly">A type that derives implements the <seealso cref="IAssembly{WordType}"/> interface. Recommended that type is derived from <seealso cref="UVSim.Assembly{WordType}"/> for ease of use</typeparam>
-    /// <typeparam name="WordType">An integer type that specifies the word size used in the architecture</typeparam>
-    public abstract class AssembliesManagement_Interface<Assembly, WordType>
-        where Assembly : IAssembly<WordType>
-        where WordType : IBinaryInteger<WordType>, new()
+    public abstract class AssembliesManagement_Interface
     {
         #region FIELDS
+        /// <summary>
+        /// The instruction set interface implementation who's architecture these assemblies will be built for
+        /// </summary>
+        protected InstructionSet_Interface _instructionSet;
         #endregion
 
         #region PROPERTIES
         /// <summary>
-        /// The <seealso cref="Assembly{WordType}"/>s in the manager's collection
+        /// The <seealso cref="Assembly"/>s in the manager's collection
         /// </summary>
         public ObservableCollection<Assembly> LoadedAssemblies { get; } = new();
 
         /// <summary>
-        /// The number of <seealso cref="Assembly{WordType}"/>s in the manager's collection
+        /// The number of <seealso cref="Assembly"/>s in the manager's collection
         /// </summary>
         public int LoadedAssembliesCount { get => LoadedAssemblies.Count; }
 
@@ -374,17 +381,17 @@ namespace UVSim
 
         #region OPERATORS
         /// <summary>
-        /// Retrieve a particular <seealso cref="Assembly{WordType}"/> at a given index
+        /// Retrieve a particular <seealso cref="Assembly"/> at a given index
         /// </summary>
-        /// <param name="index">The location (index) of the <seealso cref="Assembly{WordType}"/> to retrieve</param>
-        /// <returns>The retieved <seealso cref="Assembly{WordType}"/> if one was obtained</returns>
-        /// <exception cref="System.IndexOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
+        /// <param name="index">The location (index) of the <seealso cref="Assembly"/> to retrieve</param>
+        /// <returns>The retieved <seealso cref="Assembly"/> if one was obtained</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
         public virtual Assembly this[int index]
         {
             get
             {
                 if (LoadedAssemblies[index] == null)
-                    throw new System.IndexOutOfRangeException("There is no program with that index");
+                    throw new System.ArgumentOutOfRangeException(nameof(index), "There is no program with that index");
 
                 return LoadedAssemblies[index];
             }
@@ -392,7 +399,12 @@ namespace UVSim
         #endregion
 
         #region CONSTRUCTORS
-
+        /// <summary>
+        /// Cnstruct and initialize the manager
+        /// </summary>
+        /// <param name="instructionSet">A reference to an instruction set definition that this managers asseblies will use</param>
+        public AssembliesManagement_Interface(InstructionSet_Interface instructionSet) =>
+            (_instructionSet) = (instructionSet);
         #endregion
 
         #region METHODS
@@ -436,13 +448,13 @@ namespace UVSim
         /// <param name="assemblyName">The name of the assembly to add</param>
         /// <param name="words">The collection of words to copy</param>
         /// <returns></returns>
-        public abstract bool TryCreateAssembly(string assemblyName, Collection<WordType> words);
+        public abstract bool TryCreateAssembly(string assemblyName, Collection<byte> words);
 
         /// <summary>
         /// Removes an assembly from the collection
         /// </summary>
-        /// <param name="index">The index of the <seealso cref="Assembly{WordType}"/> to remove</param>
-        /// <exception cref="System.InvalidOperationException">Thrown if the method is called when there are no <seealso cref="Assembly{WordType}"/>s in the manager's collection</exception>
+        /// <param name="index">The index of the <seealso cref="Assembly"/> to remove</param>
+        /// <exception cref="System.InvalidOperationException">Thrown if the method is called when there are no <seealso cref="Assembly"/>s in the manager's collection</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
         public virtual void DeleteAssembly(int index)
         {

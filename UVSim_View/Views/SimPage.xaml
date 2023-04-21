@@ -6,9 +6,9 @@
              
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              
-             xmlns:viewmodel="clr-namespace:UVSim.ViewModel;assembly=UVSim_ViewModel">
-
-    <!--:DataType="viewmodel:ArchitectureSimViewModel"-->
+             xmlns:viewmodel="clr-namespace:UVSim.ViewModel;assembly=UVSim_ViewModel"
+             
+             x:DataType="viewmodel:MasterViewModel">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" IsEnabled="False"/>
@@ -465,7 +465,7 @@
                                     <ListView
                                         Grid.Column="0"
                                     
-                                        ItemsSource="{Binding RegisterDescriptors}"
+                                        ItemsSource="{Binding ArchitectureSimViewModel.RegisterDescriptors}"
                                     
                                         FlowDirection="LeftToRight"
                                     
@@ -501,7 +501,7 @@
                                     <ListView
                                         Grid.Column="1"
                                     
-                                        ItemsSource="{Binding ArchitectureSim.Registers}"
+                                        ItemsSource="{Binding ArchitectureSimViewModel.ArchitectureSim.Registers}"
                                     
                                         HorizontalOptions="End"
                                     
@@ -586,7 +586,7 @@
                     
                                 Margin="0"
                 
-                                ItemsSource="{Binding ColumnIndex}"
+                                ItemsSource="{Binding ArchitectureSimViewModel.ColumnIndex}"
                                 SelectionMode="None"
                         
                                 ItemSizingStrategy="MeasureFirstItem"
@@ -647,7 +647,7 @@
                     
                                 Margin="0"
                 
-                                ItemsSource="{Binding RowIndex}"
+                                ItemsSource="{Binding ArchitectureSimViewModel.RowIndex}"
                                 SelectionMode="None"
                         
                                 ItemSizingStrategy="MeasureFirstItem"
@@ -704,7 +704,7 @@
                     
                                 Margin="0"
                 
-                                ItemsSource="{Binding ArchitectureSim.Memory}"
+                                ItemsSource="{Binding ArchitectureSimViewModel.ArchitectureSim.Memory}"
                                 SelectionMode="None"
                         
                                 ItemSizingStrategy="MeasureFirstItem"
