@@ -188,6 +188,7 @@ namespace UVSim
             for(int programIndex = 0; programIndex < programCache.Length; programIndex += _bytesPerWord)
             {
                 Array.Copy(programCache, programIndex, memory[memoryAddress], 0, _bytesPerWord);
+                memoryAddress++;
             }
 
             Interlocked.Exchange(ref _programLoaded, 1);

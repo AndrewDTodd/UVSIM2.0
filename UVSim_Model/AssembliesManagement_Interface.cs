@@ -282,6 +282,7 @@ namespace UVSim
         /// <param name="assemblyName">The name of the assembly being created</param>
         /// <param name="programText">Array of strings representing the lines of the program to be assembled</param>
         /// <returns>true if operation succeeds, false otherwise</returns>
+        /// <exception cref="ArgumentException">Thrown if the operation fails due to inproper input</exception>
         public abstract bool AssembleProgram(string assemblyName, string[] programText);
 
         /// <summary>
@@ -291,6 +292,7 @@ namespace UVSim
         /// <remarks>Will not store the program in the program collection. Primarily for testing</remarks>
         /// <param name="assemblyName">The name of the assembly being created</param>
         /// <param name="programText">Array of strings representing the lines of the program to be assembled</param>
+        /// <exception cref="ArgumentException">Thrown if the operation fails due to inproper input</exception>
         public abstract Assembly ParseProgram(string assemblyName, string[] programText);
 
         /// <summary>
@@ -364,27 +366,27 @@ namespace UVSim
 
         #region PROPERTIES
         /// <summary>
-        /// The <seealso cref="Assembly"/>s in the manager's collection
+        /// The <seealso cref="UVSim.Assembly"/>s in the manager's collection
         /// </summary>
-        public ObservableCollection<Assembly> LoadedAssemblies { get; } = new();
+        public ObservableCollection<UVSim.Assembly> LoadedAssemblies { get; } = new();
 
         /// <summary>
-        /// The number of <seealso cref="Assembly"/>s in the manager's collection
+        /// The number of <seealso cref="UVSim.Assembly"/>s in the manager's collection
         /// </summary>
-        public int LoadedAssembliesCount { get => LoadedAssemblies.Count; }
+        public virtual int LoadedAssembliesCount { get => LoadedAssemblies.Count; }
 
         /// <summary>
         /// Gets the assembly at the end of the collection
         /// </summary>
-        public Assembly Last { get => LoadedAssemblies.Last(); }
+        public virtual Assembly Last { get => LoadedAssemblies.Last(); }
         #endregion
 
         #region OPERATORS
         /// <summary>
-        /// Retrieve a particular <seealso cref="Assembly"/> at a given index
+        /// Retrieve a particular <seealso cref="UVSim.Assembly"/> at a given index
         /// </summary>
-        /// <param name="index">The location (index) of the <seealso cref="Assembly"/> to retrieve</param>
-        /// <returns>The retieved <seealso cref="Assembly"/> if one was obtained</returns>
+        /// <param name="index">The location (index) of the <seealso cref="UVSim.Assembly"/> to retrieve</param>
+        /// <returns>The retieved <seealso cref="UVSim.Assembly"/> if one was obtained</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
         public virtual Assembly this[int index]
         {
@@ -453,8 +455,8 @@ namespace UVSim
         /// <summary>
         /// Removes an assembly from the collection
         /// </summary>
-        /// <param name="index">The index of the <seealso cref="Assembly"/> to remove</param>
-        /// <exception cref="System.InvalidOperationException">Thrown if the method is called when there are no <seealso cref="Assembly"/>s in the manager's collection</exception>
+        /// <param name="index">The index of the <seealso cref="UVSim.Assembly"/> to remove</param>
+        /// <exception cref="System.InvalidOperationException">Thrown if the method is called when there are no <seealso cref="UVSim.Assembly"/>s in the manager's collection</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown if the index entered is out of bounds of the manager's collection</exception>
         public virtual void DeleteAssembly(int index)
         {

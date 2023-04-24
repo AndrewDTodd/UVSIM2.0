@@ -51,7 +51,7 @@ namespace UVSim
         /// <summary>
         /// Construct and initialize this concrete Assembly type with an assembly name
         /// </summary>
-        /// <param name="assemblyName">The name of the assembly</param
+        /// <param name="assemblyName">The name of the assembly</param>
         /// <param name="instructionSet">The instruction set this assembly is to build in</param>
         public BasicMLAssembly(string assemblyName, InstructionSet_Interface instructionSet) : base(assemblyName, "bmlo", 100, 2, instructionSet)
         {}
@@ -100,7 +100,7 @@ namespace UVSim
 
                     int bitsToShift = 16 - bitsPerOperand;
 
-                    Int16 operand = 0;
+                    Int16 operand;
 
                     for (int wordNum = 1; wordNum < line.Length - 1; wordNum++)
                     {
@@ -189,7 +189,7 @@ namespace UVSim
 
                     int bitsToShift = 16 - bitsPerOperand;
 
-                    Int16 operand = 0;
+                    Int16 operand;
 
                     for (int wordNum = 1; wordNum < line.Length - 1; wordNum++)
                     {

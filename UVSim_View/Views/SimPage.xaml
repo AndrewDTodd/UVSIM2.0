@@ -8,6 +8,8 @@
              
              xmlns:viewmodel="clr-namespace:UVSim.ViewModel;assembly=UVSim_ViewModel"
              
+             xmlns:converters="clr-namespace:UVSim.ViewModel.Converters;assembly=UVSim_ViewModel"
+             
              x:DataType="viewmodel:MasterViewModel">
 
     <Shell.BackButtonBehavior>
@@ -25,6 +27,9 @@
     </ContentPage.MenuBarItems>
 
     <ContentPage.Resources>
+        <converters:ByteArrayToWordConverter x:Key="byteArrayConverter"/>
+        <converters:CollectionArrayToIntConverter x:Key="collectionByteArrayConverter"/>
+
         <ControlTemplate x:Key="DockOptionsControlTemplate">
             <ContentView
                 Margin="0"
@@ -462,7 +467,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <ListView
+                                    <CollectionView
                                         Grid.Column="0"
                                     
                                         ItemsSource="{Binding ArchitectureSimViewModel.RegisterDescriptors}"
@@ -472,68 +477,82 @@
                                         HorizontalOptions="Start"
                                     
                                         SelectionMode="None"
+                                        
+                                        ItemSizingStrategy="MeasureFirstItem"
                                     
                                         VerticalScrollBarVisibility="Never"
                                         HorizontalScrollBarVisibility="Never">
 
-                                        <ListView.ItemTemplate>
+                                        <CollectionView.ItemsLayout>
+                                            <LinearItemsLayout
+                                                Orientation="Vertical"
+                                                ItemSpacing="0"/>
+                                        </CollectionView.ItemsLayout>
+
+                                        <CollectionView.ItemTemplate>
                                             <DataTemplate>
-                                                <ViewCell>
-
-                                                    <Frame
-                                                        BorderColor="CadetBlue"
-                                                        BackgroundColor="Transparent"
-                                                        Padding="3"
-                                                        Margin="5"
+                                                <Frame
+                                                    BorderColor="CadetBlue"
+                                                    BackgroundColor="Transparent"
+                                                    Padding="3"
+                                                    Margin="5"
                                                     
-                                                        MinimumWidthRequest="200">
+                                                    MinimumWidthRequest="200">
 
-                                                        <Label
-                                                            Text="{Binding .}"
-                                                            HorizontalOptions="End"
-                                                            FlowDirection="RightToLeft"/>
-                                                    </Frame>
-                                                </ViewCell>
+                                                    <Label
+                                                        Text="{Binding .}"
+                                                        HorizontalOptions="End"
+                                                        FlowDirection="RightToLeft"/>
+                                                </Frame>
                                             </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
 
-                                    <ListView
+                                    <CollectionView
+                                        x:Name="registersView"
+                                        
                                         Grid.Column="1"
                                     
-                                        ItemsSource="{Binding ArchitectureSimViewModel.ArchitectureSim.Registers}"
+                                        ItemsSource="{Binding ArchitectureSimViewModel.Registers}"
                                     
                                         HorizontalOptions="End"
                                     
                                         SelectionMode="None"
+                                        
+                                        ItemSizingStrategy="MeasureFirstItem"
                                     
                                         VerticalScrollBarVisibility="Never"
                                         HorizontalScrollBarVisibility="Never">
 
-                                        <ListView.ItemTemplate>
+                                        <CollectionView.ItemsLayout>
+                                            <LinearItemsLayout
+                                                Orientation="Vertical"
+                                                ItemSpacing="0"/>
+                                        </CollectionView.ItemsLayout>
+
+                                        <CollectionView.ItemTemplate>
                                             <DataTemplate>
-                                                <ViewCell>
-
-                                                    <Frame
-                                                        BorderColor="green"
-                                                        BackgroundColor="{StaticResource Gray500}"
-                                                        Padding="3"
-                                                        Margin="5"
+                                                
+                                                <Frame
+                                                    BorderColor="green"
+                                                    BackgroundColor="{StaticResource Gray500}"
+                                                    Padding="3"
+                                                    Margin="5"
                                 
-                                                        MinimumWidthRequest="50"
-                                                        MaximumWidthRequest="70"
+                                                    MinimumWidthRequest="50"
+                                                    MaximumWidthRequest="70"
                                 
-                                                        HorizontalOptions="Center"
-                                                        VerticalOptions="Center">
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="Center">
 
-                                                        <Label
-                                                            Text="{Binding ., StringFormat='{}{0:D5}'}"
-                                                            HorizontalOptions="Center"/>
-                                                    </Frame>
-                                                </ViewCell>
+                                                    <Label
+                                                        Text="{Binding .,
+                                                        StringFormat='{}{0:D6}'}"
+                                                        HorizontalOptions="Center"/>
+                                                </Frame>
                                             </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
                                 </Grid>
                             </ScrollView>
                         </VerticalStackLayout>
@@ -704,7 +723,8 @@
                     
                                 Margin="0"
                 
-                                ItemsSource="{Binding ArchitectureSimViewModel.ArchitectureSim.Memory}"
+                                ItemsSource="{Binding ArchitectureSimViewModel.Memory}"
+                                
                                 SelectionMode="None"
                         
                                 ItemSizingStrategy="MeasureFirstItem"
@@ -737,7 +757,8 @@
                                         VerticalOptions="Center">
 
                                             <Label
-                                            Text="{Binding ., StringFormat='{}{0:D4}'}"
+                                            Text="{Binding .,
+                                                StringFormat='{}{0:D4}'}"
                                             HorizontalOptions="Center"/>
                                         </Frame>
                                     </DataTemplate>

@@ -33,14 +33,9 @@ namespace UVSim
         ///<inheritdoc/>
         public override bool TryCreateNewProgram(string programName)
         {
-            if (Activator.CreateInstance(typeof(BasicMLProgram), new { programName }) is BasicMLProgram newProgram)
-            {
-                Programs.Add(newProgram);
+            Programs.Add(new BasicMLProgram(programName));
 
-                return true;
-            }
-            else
-                return false;
+            return true;
         }
     }
 }

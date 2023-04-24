@@ -12,19 +12,23 @@ namespace UVSim.ViewModel
         private readonly ArchitectureSimViewModel _architectureSimViewModel;
         private readonly AssembliesManagementViewModel _assembliesManagementViewModel;
         private readonly ProgramsManagementViewModel _programsManagemetViewModel;
+        private readonly ArchitecturePackage_Interface _simPackage;
         #endregion
 
         #region PROPERTIES
+        public ArchitecturePackage_Interface SimPackage { get => _simPackage; }
         public ArchitectureSimViewModel ArchitectureSimViewModel { get => _architectureSimViewModel; }
         public AssembliesManagementViewModel AssembliesManagementViewModel { get => _assembliesManagementViewModel; }
         public ProgramsManagementViewModel ProgramsManagementViewModel { get => _programsManagemetViewModel; }
         #endregion
 
         #region CONSTRUCTORS
-        public MasterViewModel(ArchitectureSimViewModel architectureSimViewModel,
+        public MasterViewModel(ArchitecturePackage_Interface simPackage,
+            ArchitectureSimViewModel architectureSimViewModel,
             AssembliesManagementViewModel assembliesManagementViewModel,
             ProgramsManagementViewModel programsManagementViewModel)
         {
+            _simPackage = simPackage;
             _architectureSimViewModel = architectureSimViewModel;
             _assembliesManagementViewModel = assembliesManagementViewModel;
             _programsManagemetViewModel = programsManagementViewModel;

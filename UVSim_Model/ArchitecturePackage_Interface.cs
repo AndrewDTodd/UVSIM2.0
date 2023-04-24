@@ -22,10 +22,10 @@ namespace UVSim
         protected ArchitectureSim_Interface _architectureSim;
 
         /// <summary>
-        /// A reference to an <seealso cref="AssembliesManagement_Interface"/> concrete implementation
+        /// A reference to an <seealso cref="AssembliesManagementFixedSize_Interface"/> concrete implementation
         /// </summary>
         [ObservableProperty]
-        protected AssembliesManagement_Interface _assemblyManager;
+        protected AssembliesManagementFixedSize_Interface _assemblyManager;
 
         /// <summary>
         /// A refernece to a <seealso cref="ProgramsManagement_Interface"/> concrete implementation
@@ -43,7 +43,7 @@ namespace UVSim
         /// <param name="programManager">the concrete <seealso cref="ProgramsManagement_Interface"/> to use in the package</param>
         public ArchitecturePackage_Interface(ArchitectureSim_Interface architectureSim,
             ProgramsManagement_Interface programManager,
-            AssembliesManagement_Interface assemblyManager) =>
+            AssembliesManagementFixedSize_Interface assemblyManager) =>
             (_architectureSim, _programsManager, _assemblyManager) = (architectureSim, programManager, assemblyManager);
         #endregion
 
@@ -97,6 +97,7 @@ namespace UVSim
         /// </summary>
         /// <param name="program">The program to save</param>
         /// <returns>True if the program was saved successfully, false otherwise</returns>
+        /// <exception cref="InvalidOperationException">Thrown if called when the program's file info isnt set</exception>
         public virtual async Task<bool> SaveProgram(Program program)
         {
             Task<bool> task = program.SerializeProgram();
@@ -143,7 +144,7 @@ namespace UVSim
         /// <returns>True if the program is saved successfully, false otherwise</returns>
         public virtual async Task<bool> SaveProgramTo(int index, FileInfo info)
         {
-            ProgramsManager[index].FileInfo = info;
+            ProgramsManager[index].FileInfo = new($"{info.FullName}//{ProgramsManager[index].ProgramName}.{ProgramsManager[index].Extension}"); ;
             
             Task<bool> task = ProgramsManager[index].SerializeProgram();
 
@@ -159,7 +160,7 @@ namespace UVSim
         /// <returns>True if the file was successfully saved, false otherwise</returns>
         public virtual async Task<bool> SaveProgramTo(Program program, FileInfo info)
         {
-            program.FileInfo = info;
+            program.FileInfo = new($"{info.FullName}//{program.ProgramName}.{program.Extension}");
             
             Task<bool> task = program.SerializeProgram();
 
@@ -290,7 +291,7 @@ namespace UVSim
         /// <returns>True if the assembly is saved successfully, false otherwise</returns>
         public virtual async Task<bool> SaveAssemblyTo(int index, FileInfo info)
         {
-            AssemblyManager[index].FileInfo = info;
+            AssemblyManager[index].FileInfo = new($"{info.FullName}//{AssemblyManager[index].AssemblyName}.{AssemblyManager[index].Extension}");
 
             Task<bool> task = AssemblyManager[index].SerializeAssembly();
 
@@ -306,7 +307,7 @@ namespace UVSim
         /// <returns>True if the file was successfully saved, false otherwise</returns>
         public virtual async Task<bool> SaveAssemblyTo(Assembly assembly, FileInfo info)
         {
-            assembly.FileInfo = info;
+            assembly.FileInfo = new($"{info.FullName}//{assembly.AssemblyName}.{assembly.Extension}");
 
             Task<bool> task = assembly.SerializeAssembly();
 
@@ -465,6 +466,7 @@ namespace UVSim
         /// </summary>
         /// <param name="program">The program to save</param>
         /// <returns>True if the program and assembly are saved successfully, false otherwise</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the program or assembly has no save info set</exception>
         public virtual async Task<bool> SaveProgramAssemblyPair(Program program)
         {
             if (program.Assembly != null)
@@ -621,7 +623,7 @@ namespace UVSim
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                 Program program = ProgramsManager.Last;
-                Assembly assembly = AssemblyManager.Last;
+                Assembly_FixedSize assembly = AssemblyManager.Last;
 
                 program.FileInfo = programInfo;
                 assembly.FileInfo = assemblyInfo;
@@ -685,13 +687,14 @@ namespace UVSim
         /// </summary>
         /// <param name="program">The program object to build the assembly from</param>
         /// <returns>True if the operation succeeds, false otherwise</returns>
+        /// <exception cref="ArgumentException">Will be thrown if the program is not valid and can not be built</exception>
         public virtual async Task<bool> TryBuildProgram(Program program)
         {
             Task<bool> task = Task.Run(() =>
             {
                 if (program.Assembly == null)
                 {
-                    if (!AssemblyManager.TryCreateAssembly(program.ProgramName, program.Text.Split('\n')))
+                    if (!AssemblyManager.TryCreateAssembly(program.ProgramName, program.Text.Split(new string[] { "\n", "\r", "\r\n" }, StringSplitOptions.None)))
                         return false;
 
                     program.Assembly = AssemblyManager.Last;
@@ -701,7 +704,7 @@ namespace UVSim
                 }
                 else
                 {
-                    if (!program.Assembly.AssembleProgram(program.ProgramName, program.Text.Split('\n')))
+                    if (!program.Assembly.AssembleProgram(program.ProgramName, program.Text.Split(new string[] { "\n", "\r", "\r\n" }, StringSplitOptions.None)))
                         return false;
 
                     program.Assembly.UpToDate = true;
@@ -711,6 +714,26 @@ namespace UVSim
             });
 
             await task;
+
+            /*if (program.Assembly == null)
+            {
+                if (!AssemblyManager.TryCreateAssembly(program.ProgramName, program.Text.Split(new string[] {"\n", "\r", "\r\n"}, StringSplitOptions.None)))
+                    return false;
+
+                program.Assembly = AssemblyManager.Last;
+                program.Assembly.UpToDate = true;
+
+                return true;
+            }
+            else
+            {
+                if (!program.Assembly.AssembleProgram(program.ProgramName, program.Text.Split(new string[] {"\n", "\r", "\r\n"}, StringSplitOptions.None)))
+                    return false;
+
+                program.Assembly.UpToDate = true;
+
+                return true;
+            }*/
 
             return task.Result;
         }
@@ -733,23 +756,29 @@ namespace UVSim
         /// Loads the provided assembly into the simulator
         /// </summary>
         /// <param name="assembly">The assembly to load</param>
-        public virtual async void LoadAssembly(Assembly assembly)
+        public virtual void LoadAssembly(Assembly assembly)
         {
+            /*
             await Task.Run(() =>
             {
                 ArchitectureSim.LoadProgram(assembly.Words);
             });
+            */
+            ArchitectureSim.LoadProgram(assembly.Words);
         }
 
         /// <summary>
         /// Runs the simulator on the currently loaded program, if there is one
         /// </summary>
-        public virtual async void RunSimulator()
+        public virtual  void RunSimulator()
         {
+            /*
             await Task.Run(() =>
             {
                 ArchitectureSim.RunProgram();
             });
+            */
+            ArchitectureSim.RunProgram();
         }
 
         /// <summary>

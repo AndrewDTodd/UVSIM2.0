@@ -106,9 +106,13 @@ namespace UVSim
         /// <param name="assemblyCapacity">The maximum number of words supported by this assembly type</param>
         /// <param name="bytesPerWord">How many bytes are in an addressable word in this architecture. For example for a 16bit architecture this is 2</param>
         /// <param name="instructionSet">The instruction set this assembly is to build in</param>
-        public Assembly_FixedSize(string assemblyName, string assemblyExtension, string[] programText, int assemblyCapacity, int bytesPerWord, InstructionSet_Interface instructionSet) : 
-            base(assemblyName, assemblyExtension, programText, bytesPerWord, instructionSet) =>
+        public Assembly_FixedSize(string assemblyName, string assemblyExtension, string[] programText, int assemblyCapacity, int bytesPerWord, InstructionSet_Interface instructionSet) :
+            base(assemblyName, assemblyExtension, bytesPerWord, instructionSet)
+        {
             (WordsCount) = (assemblyCapacity);
+
+            this.AssembleProgram(assemblyName, programText);
+        }
 
         /// <summary>
         /// Construct and initialize an assembly with its file name, the extension assigned to this assembly type, and with a collection of Words to copy
@@ -142,9 +146,19 @@ namespace UVSim
         protected int AssemblySize {get; init;}
 
         /// <summary>
-        /// The <seealso cref="Assembly_FixedSize"/>s in the manager's collection
+        /// The <seealso cref="UVSim.Assembly"/>s in the manager's collection
         /// </summary>
         public new ObservableCollection<Assembly_FixedSize> LoadedAssemblies { get; } = new();
+
+        /// <summary>
+        /// The number of <seealso cref="UVSim.Assembly"/>s in the manager's collection
+        /// </summary>
+        public override int LoadedAssembliesCount { get => LoadedAssemblies.Count; }
+
+        /// <summary>
+        /// Gets the assembly at the end of the collection
+        /// </summary>
+        public override Assembly_FixedSize Last { get => LoadedAssemblies.Last(); }
         #endregion
 
         #region OPERATORS
@@ -171,6 +185,7 @@ namespace UVSim
         /// Initialize the object
         /// </summary>
         /// <param name="assemblySize">The maximum size of the assembly in bytes</param>
+        /// <param name="instructionSet">The <seealso cref="InstructionSet_Interface"/> used by this assembly type to build to</param>
         protected AssembliesManagementFixedSize_Interface(int assemblySize, InstructionSet_Interface instructionSet) : base(instructionSet) =>
             AssemblySize = assemblySize;
         #endregion

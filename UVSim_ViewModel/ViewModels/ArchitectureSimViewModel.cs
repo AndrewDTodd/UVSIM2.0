@@ -15,7 +15,7 @@ namespace UVSim.ViewModel
     public partial class ArchitectureSimViewModel : BaseViewModel
     {
         #region FIELDS
-        private readonly BasicMLPackage _simPackage;
+        private readonly ArchitecturePackage_Interface _simPackage;
         #endregion
 
         #region PROPERTIES
@@ -25,11 +25,17 @@ namespace UVSim.ViewModel
 
         public List<string> RegisterDescriptors { get; } = new();
 
-        public ArchitectureSim_Interface<Int16> ArchitectureSim { get => _simPackage.ArchitectureSim; }
+        public ArchitectureSim_Interface ArchitectureSim { get => _simPackage.ArchitectureSim; }
+
+        public ObservableCollection<byte[]> Registers { get => _simPackage.ArchitectureSim.Registers; }
+        
+        public ObservableCollection<byte[]> Memory { get =>  _simPackage.ArchitectureSim.Memory; }
+
+        public int BytesPerWord { get => _simPackage.ArchitectureSim.BytesPerWord; }
         #endregion
 
         #region CONSTRUCTORS
-        public ArchitectureSimViewModel(BasicMLPackage package)
+        public ArchitectureSimViewModel(ArchitecturePackage_Interface package)
         {
             _simPackage = package;
 

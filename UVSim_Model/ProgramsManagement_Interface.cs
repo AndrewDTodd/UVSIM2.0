@@ -224,7 +224,7 @@ namespace UVSim
         /// The <seealso cref="UVSim.Assembly"/> this <seealso cref="Program"/> is associated with
         /// </summary>
         [ObservableProperty]
-        protected UVSim.Assembly? _assembly;
+        protected UVSim.Assembly_FixedSize? _assembly;
         #endregion
 
         #region PROPERTIES
@@ -392,19 +392,15 @@ namespace UVSim
         /// <returns>True if the operation is successfull, false otherwise</returns>
         public virtual bool TryAddLine(string text)
         {
-            if (Activator.CreateInstance(typeof(LineData), new { text }) is LineData line)
-            {
-                Lines.Add(line);
-                NeedsSave = true;
+            Lines.Add(new(text));
+            NeedsSave = true;
 
-                Text = string.Join(Text, "\n" + text);
+            Text = string.Join(Text, "\n" + text);
 
-                if(Assembly != null)
-                    Assembly.UpToDate = false;
+            if (Assembly != null)
+                Assembly.UpToDate = false;
 
-                return true;
-            }
-            return false;
+            return true;
         }
         /// <summary>
         /// Default implementation for the <seealso cref="Program"/> interface's RemoveLine signature. Removes a <seealso cref="LineData"/> object from the collection
@@ -514,10 +510,7 @@ namespace UVSim
 
             writer.AutoFlush = false;
 
-            foreach(LineData line in Lines)
-            {
-                await writer.WriteLineAsync(line.Text);
-            }
+            await writer.WriteAsync(Text);
 
             await writer.FlushAsync();
 
@@ -543,15 +536,11 @@ namespace UVSim
 
             await result;
 
-            foreach(string line in result.Result.Split('\n'))
-            {
-                if(!TryAddLine(line))
-                    throw new InvalidDataException($"Was unable to add line ({line}) to the programs line collection");
-            }
+            Text = result.Result;
 
             NeedsSave = false;
 
-            ProgramName = FileInfo.Name;
+            ProgramName = FileInfo.Name.Split('.')[0];
 
             return true;
         }
@@ -706,11 +695,11 @@ namespace UVSim
         {
             List<FileInfo> failedFiles = new();
 
-            await Parallel.ForEachAsync(infos, token, async (info, token) =>
+            foreach(FileInfo info in infos)
             {
                 token.ThrowIfCancellationRequested();
 
-                TryCreateNewProgram(info.Name);
+                TryCreateNewProgram(info.Name.Split('.')[0]);
 
                 Task<bool> task = Programs.Last().DeserializeProgram(info);
 
@@ -721,7 +710,7 @@ namespace UVSim
                     Programs.RemoveAt(ProgramsCount - 1);
                     failedFiles.Add(info);
                 }
-            });
+            }
 
             return failedFiles;
         }

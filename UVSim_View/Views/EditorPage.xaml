@@ -9,19 +9,37 @@
              
              xmlns:viewmodel="clr-namespace:UVSim.ViewModel;assembly=UVSim_ViewModel"
              
+             xmlns:model="clr-namespace:UVSim;assembly=UVSim_Model"
+             
+             xmlns:converters="clr-namespace:UVSim.ViewModel.Converters;assembly=UVSim_ViewModel"
+             
              x:DataType="viewmodel:MasterViewModel">
 
     <ContentPage.MenuBarItems>
         <MenuBarItem Text="File">
+            <MenuFlyoutItem
+                Text="New Program"
+                Clicked="ToolBarMenuFlyout_New"/>
+
+            <MenuFlyoutItem 
+                Text="Open Program"
+                Clicked="ToolBarMenuFlyout_Open"/>
+
+            <MenuFlyoutSeparator/>
+            
             <MenuFlyoutItem Text="Save"/>
             <MenuFlyoutItem Text="Save As"/>
             <MenuFlyoutItem Text="Save All"/>
+            
             <MenuFlyoutSeparator/>
+            
             <MenuFlyoutItem Text="Exit"/>
         </MenuBarItem>
     </ContentPage.MenuBarItems>
 
     <ContentPage.Resources>
+        <converters:FullNameMultiConverter x:Key="fullFileNameConverter"/>
+
         <ControlTemplate x:Key="DockOptionsControlTemplate">
             <ContentView
                 Margin="0"
@@ -31,6 +49,37 @@
             
                     Text="{Binding Content}"
                     Style="{StaticResource DockOptionsButton}">
+
+                    <Button.Triggers>
+                        <DataTrigger
+                            TargetType="Button"
+                            Binding="{Binding Source={RelativeSource TemplatedParent}, Path=IsChecked}"
+                            Value="True">
+
+                            <Setter
+                                Property="BorderColor"
+                                Value="AliceBlue"/>
+                        </DataTrigger>
+                    </Button.Triggers>
+
+                    <Button.GestureRecognizers>
+                        <TapGestureRecognizer
+                            NumberOfTapsRequired="1"
+                            Tapped="DockOptionsButton_Tapped"/>
+                    </Button.GestureRecognizers>
+                </Button>
+            </ContentView>
+        </ControlTemplate>
+        
+        <ControlTemplate x:Key="EditProgramsControlTemplate">
+            <ContentView
+                Margin="0"
+                Padding="0">
+                <Button
+                    BindingContext="{Binding Source={RelativeSource TemplatedParent}}"
+            
+                    Text="{Binding Content}"
+                    Style="{StaticResource EditProgramsButton}">
 
                     <Button.Triggers>
                         <DataTrigger
@@ -207,7 +256,8 @@
                 BorderColor="{StaticResource Gray500}"
                 BackgroundColor="{StaticResource Gray550}">
 
-                <VerticalStackLayout>
+                <VerticalStackLayout
+                    x:Name="programsExplorerStack">
                     <Label
                         Text="Programs Collection Explorer"
                         
@@ -223,42 +273,119 @@
                         
                         MinimumHeightRequest="30"/>
 
-                    <ListView
+                    <CollectionView
                         Grid.Column="1"
                                     
                         ItemsSource="{Binding ProgramsManagementViewModel.Programs}"
                                     
-                        HorizontalOptions="End"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Fill"
+                        
+                        MinimumWidthRequest="{Binding Source={x:Reference programsExplorerStack}, Path=Width}"
+                        MinimumHeightRequest="500"
                                     
                         SelectionMode="None"
                                     
-                        VerticalScrollBarVisibility="Never"
+                        VerticalScrollBarVisibility="Default"
                         HorizontalScrollBarVisibility="Never">
 
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ViewCell>
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Text="New Program"
+                                    Clicked="ToolBarMenuFlyout_New"/>
 
-                                    <Frame
-                                        BorderColor="green"
-                                        BackgroundColor="{StaticResource Gray500}"
-                                        Padding="3"
-                                        Margin="5"
-                                
-                                        MinimumWidthRequest="50"
-                                        MaximumWidthRequest="70"
-                                
-                                        HorizontalOptions="Center"
-                                        VerticalOptions="Center">
+                                <MenuFlyoutItem
+                                    Text="Open"
+                                    Clicked="ToolBarMenuFlyout_Open"/>
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
 
-                                        <Label
-                                            Text="{Binding ., StringFormat='{}{0:D5}'}"
-                                            HorizontalOptions="Center"/>
-                                    </Frame>
-                                </ViewCell>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate
+                                x:DataType="model:Program">
+
+                                <toolkit:Expander>
+                                    <toolkit:Expander.Header>
+                                        <Label>
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0}.{1}">
+                                                    <Binding Path="ProgramName"/>
+                                                    <Binding Path="Extension"/>
+                                                </MultiBinding>
+                                            </Label.Text>
+
+                                            <Label.GestureRecognizers>
+
+                                                <TapGestureRecognizer
+                                                    Buttons="Primary"
+                                                    Tapped="ProgramDoubleClick_Edit"
+                                                    CommandParameter="{Binding .}"
+                                                    NumberOfTapsRequired="2"/>
+                                            </Label.GestureRecognizers>
+
+                                            <FlyoutBase.ContextFlyout>
+                                                <MenuFlyout>
+
+                                                    <MenuFlyoutItem
+                                                    Text="Open"
+                                                    Clicked="ProgramExplorerMenuFlyout_Open"
+                                                    CommandParameter="{Binding .}"/>
+
+                                                    <MenuFlyoutItem
+                                                    Text="Save"
+                                                    Clicked="ProgramExplorerMenuFlyout_Save"
+                                                    CommandParameter="{Binding .}"/>
+
+                                                    <MenuFlyoutSeparator/>
+
+                                                    <MenuFlyoutItem
+                                                    Text="Build"
+                                                    Clicked="ProgramExplorerMenuFlyout_Build"
+                                                    CommandParameter="{Binding .}"/>
+
+                                                    <MenuFlyoutSeparator/>
+
+                                                    <MenuFlyoutItem
+                                                    Text="Remove"
+                                                    Clicked="ProgramExplorerMenuFlyout_Remove"
+                                                    CommandParameter="{Binding .}"/>
+                                                </MenuFlyout>
+                                            </FlyoutBase.ContextFlyout>
+                                        </Label>
+                                    </toolkit:Expander.Header>
+                                    <Label
+                                        IsVisible="{Binding Assembly}"
+                                        
+                                        Margin="15,0,0,0">
+                                        <Label.Text>
+                                            <MultiBinding Converter="{StaticResource fullFileNameConverter}">
+                                                <Binding Path="Assembly.AssemblyName"/>
+                                                <Binding Path="Assembly.Extension"/>
+                                            </MultiBinding>
+                                        </Label.Text>
+
+                                        <FlyoutBase.ContextFlyout>
+                                            <MenuFlyout>
+
+                                                <MenuFlyoutItem
+                                                    Text="Run"
+                                                    Clicked="AssemblyRun_Clicked"
+                                                    CommandParameter="{Binding Assembly}"/>
+
+                                                <MenuFlyoutSeparator/>
+
+                                                <MenuFlyoutItem
+                                                    Text="Save"
+                                                    Clicked="AssemblySave_Clicked"
+                                                    CommandParameter="{Binding Assembly}"/>
+                                            </MenuFlyout>
+                                        </FlyoutBase.ContextFlyout>
+                                    </Label>
+                                </toolkit:Expander>
                             </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </VerticalStackLayout>
             </Frame>
 
@@ -407,9 +534,45 @@
                 CornerRadius="3"
                 BorderColor="{StaticResource Gray500}"
                 BackgroundColor="{StaticResource Gray550}">
-                
-                <CollectionView>
 
+                <CollectionView
+                    x:Name="editingProgramsCollection"
+                    
+                    Grid.Column="1"
+                                    
+                    ItemsSource="{Binding ProgramsManagementViewModel.EditingPrograms}"
+                                    
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Fill"
+                                    
+                    SelectionMode="Single"
+                    SelectionChanged="EditingProgramsCollection_SelectionChanged"
+                                    
+                    VerticalScrollBarVisibility="Never"
+                    HorizontalScrollBarVisibility="Never">
+
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal"/>
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate
+                            x:DataType="model:Program">
+
+                            <RadioButton
+                                ControlTemplate="{StaticResource EditProgramsControlTemplate}"
+                        
+                                Margin="0"
+                                Padding="0">
+                                <RadioButton.Content>
+                                    <MultiBinding StringFormat="{}{0}.{1}">
+                                        <Binding Path="ProgramName"/>
+                                        <Binding Path="Extension"/>
+                                    </MultiBinding>
+                                </RadioButton.Content>
+                            </RadioButton>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
                 </CollectionView>
             </Frame>
 
@@ -458,9 +621,10 @@
                         IsTextPredictionEnabled="False"
                         TextColor="White"
                         Margin="0"
-                            
-                        BindingContext="{x:Reference Name=editorFrame}"
-                        MaximumHeightRequest="{Binding Path=Height}"/>
+                        
+                        MaximumHeightRequest="{Binding Source={x:Reference Name=editorFrame}, Path=Height}"
+                        
+                        Text="{Binding ProgramsManagementViewModel.EditingProgram.Text, Mode=TwoWay}"/>
                 </Grid>
             </Frame>
         </toolkit:DockLayout>

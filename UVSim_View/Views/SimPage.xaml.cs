@@ -1,14 +1,21 @@
 ﻿using UVSim.ViewModel;
+using UVSim.ViewModel.Converters;
 
 namespace UVSim_View
 {
     public partial class SimPage : ContentPage
     {
-        public SimPage(MasterViewModel viewModel)
+        public SimPage(MasterViewModel viewModel, CollectionArrayToIntConverter converter)
         {
             InitializeComponent();
 
             BindingContext = viewModel;
+            
+            addressView.BindingContext = viewModel.ArchitectureSimViewModel;
+            addressView.SetBinding(ItemsView.ItemsSourceProperty, new Binding("Memory", BindingMode.OneWay, converter, viewModel.ArchitectureSimViewModel.BytesPerWord));
+
+            registersView.BindingContext = viewModel.ArchitectureSimViewModel;
+            registersView.SetBinding(ItemsView.ItemsSourceProperty, new Binding("Registers", BindingMode.OneWay, converter, viewModel.ArchitectureSimViewModel.BytesPerWord));
         }
 
         private void DockOptionsButton_Tapped(object sender, EventArgs e)
