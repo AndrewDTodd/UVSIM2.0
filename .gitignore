@@ -19,3 +19,6 @@
 /test2.bml
 /test3.bml
 /Test4.bml
+/UVSim_Model/bin
+/UVSim_View/bin/Release/net7.0-windows10.0.19041.0/win10-x64
+/UVSim_ViewModel/bin
